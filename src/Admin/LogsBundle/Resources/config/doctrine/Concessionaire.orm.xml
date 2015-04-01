@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping http://doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+  <entity name="Admin\LogsBundle\Entity\Concessionaire" table="concessionaire">
+    <unique-constraints>
+      <unique-constraint name="concessionaire_description_key" columns="description"/>
+    </unique-constraints>
+    <id name="idconcessionaire" type="integer" column="idconcessionaire">
+      <generator strategy="SEQUENCE"/>
+    </id>
+    <field name="creatorId" type="integer" column="creator_id" nullable="true"/>
+    <field name="createdAt" type="datetime" column="created_at" nullable="true"/>
+    <field name="description" type="string" column="description" length="200" nullable="true"/>
+  </entity>
+</doctrine-mapping>

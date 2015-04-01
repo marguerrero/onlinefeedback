@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Concentrix Feedback Form</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+   {% stylesheets 
+      'bundles/bootstrap/dist/css/bootstrap.css' 
+      '@FeedbackUserBundle/Resources/public/css/login_styles.css'
+      'bundles/alertify-js/themes/alertify.core.css' 
+      'bundles/alertify-js/themes/alertify.default.css'
+      'bundles/feedbackuser/css/login_styles.css'
+      'bundles/feedback/main.css'
+      filter='cssrewrite'
+    %}
+      <link rel="stylesheet" href="{{asset_url}}" />
+    {% endstylesheets %}
+</head>
+<body>
+    <div class="container">
+        <div class="navbar navbar-static-top">
+            <div class="container">
+                <div class="navbar-header">
+                  {% image '@FeedbackUserBundle/Resources/public/images/cnx_new_header_logo_white.png' %}
+                    <img class="img-responsive" src="{{  asset_url }}" alt="logo">
+                  {% endimage %}
+                </div>
+            <div>   
+        </div>
+    </div> 
+       
+    <div class="container">
+        <div class="survey-template">
+            <h4> Assesment Rating </h4>
+            <div class="row">
+                <div class="row">
+                    <div class="table-responsive">
+                         <table class="table table-bordered text-center">
+                            <tbody>
+                              <tr>
+                                  <td class="text-center" width=100=><b>1</b></td>
+                                  <td class="text-center" width=100><b>2</b></td>
+                                  <td class="text-center" width=100><b>3</b></td>
+                                  <td class="text-center" width=100><b>4</b></td>
+                              </tr>
+                              <tr>
+                                  <td class="text-center" width=100>Highly Disagree</td>
+                                  <td class="text-center" width=100>Disagree</td>
+                                  <td class="text-center" width=100>Agree</td>
+                                  <td class="text-center" width=100>Highly Agree</td>
+                              </tr>
+                          </tbody>
+                         </table>
+                    </div>
+                    <hr class="colorgraph">
+                </div>
+            </div>
+            <div class="row">
+                <div class="">
+                    <form class="form-horizontal" role="form" id="answers">
+                        <div class="form-group" id="question_form">
+                        </div>
+                        <div>
+                          <hr class="colorgraph">
+                          <button type="button" class="btn btn-default" id="previous">Previous</button>
+                          <button type="button" class="btn btn-success" id="submit">Submit</button>
+                          <button type="button" class="btn btn-default" id="next">Next</button>
+                        </div>
+                   
+                   </form>
+                </div>
+            </div>
+         </div>
+    </div>
+ {% javascripts 
+      'bundles/bootstrap/assets/js/jquery.js'
+      'bundles/bootstrap/dist/js/bootstrap.min.js'
+      'bundles/alertify-js/lib/alertify.min.js'
+      'bundles/jquery-validation/dist/jquery.validate.min.js'
+      'bundles/jquery-validation/dist/additional-methods.min.js'
+      '@FeedbackSurveyFormBundle/Resources/public/js/survey.js'
+    %}
+      <script type="text/javascript" src="{{ asset_url }}"></script>
+    {% endjavascripts %}
+</body>
+</html>

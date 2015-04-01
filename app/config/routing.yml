@@ -1,0 +1,51 @@
+feedback_anonymous:
+    resource: "@FeedbackAnonymousBundle/Controller/"
+    type:     annotation
+    prefix:   /
+
+admin_logs:
+    resource: "@AdminLogsBundle/Controller/"
+    type: annotation
+    prefix:   /login
+
+admin_email_recipient:
+    resource: "@AdminEmailRecipientBundle/Controller/"
+    type: annotation 
+    prefix:   /email
+
+#tyro_test:
+    ##resource: "@tyroTestBundle/Resources/config/routing.yml"
+    #resource: "@tyroTestBundle/Controller/"
+    #type:     annotation
+    #prefix:   /tyr
+
+admin_user_management:
+    resource: "@AdminUserManagementBundle/Controller/"
+    type:     annotation
+    prefix:   /user
+
+admin_login:
+    resource: "@AdminLoginBundle/Controller/"
+    type:     annotation
+    prefix:   /cx-admin
+
+admin_maintenance:
+    resource: "@AdminMaintenanceBundle/Controller/"
+    type:     annotation
+    prefix:   /maintenance
+
+admin_report:
+    resource: "@AdminReportBundle/Controller/"
+    type:     annotation
+    prefix:   /report
+
+feedback_survey_form:
+    resource: "@FeedbackSurveyFormBundle/Controller/"
+    type:     annotation
+    prefix:   /survey
+
+feedback_user:
+    resource: "@FeedbackUserBundle/Controller/"
+    type:     annotation
+    prefix:   /
+

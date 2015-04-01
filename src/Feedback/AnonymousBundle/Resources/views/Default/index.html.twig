@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Concentrix Feedback Form</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+   {% stylesheets 
+      'bundles/bootstrap/dist/css/bootstrap.css'
+      'bundles/alertify-js/themes/alertify.core.css' 
+      'bundles/alertify-js/themes/alertify.default.css' 
+      '@FeedbackUserBundle/Resources/public/css/login_styles.css'
+      'bundles/feedback/main.css'
+        'bundles/extjs-master/resources/ext-theme-neptune/ext-theme-neptune-all.css'
+        'bundles/extjs-master/resources/ext-theme-neptune/style.css'
+      filter='cssrewrite'
+    %}
+      <link rel="stylesheet" href="{{asset_url}}" />
+    {% endstylesheets %}
+
+    {% javascripts 
+      'bundles/bootstrap/assets/js/jquery.js'
+      'bundles/jquery-validation/dist/jquery.validate.min.js'
+      'bundles/jquery-validation/dist/additional-methods.min.js'
+      'bundles/alertify-js/lib/alertify.min.js'
+      'bundles/bootstrap/dist/js/bootstrap.min.js'
+      'bundles/extjs-master/ext-all.js'
+      '@FeedbackUserBundle/Resources/public/js/pantry_user_js.js'
+    %}
+      <script type="text/javascript" src="{{ asset_url }}"></script>
+    {% endjavascripts %}
+    <style type="text/css">
+      body {
+        font-family: Segoe UI !important;
+      }
+      .form-container {
+        max-width: 1124px;
+        margin: 65px; auto;
+        padding: 25px;
+      }
+      .anonymous-login {
+        margin-top: 20px;
+        display: block;
+      }
+      .survey-type {
+        margin-top: 30px;
+      }
+      .middle-or {
+        display: block;
+        margin-top: 125px;
+        font-size: 28px;
+      }
+      h1 {
+        color: #40a2c1;
+      }
+    </style>
+</head>
+<body>
+
+<div class="navbar navbar-static-top">
+    <div class="container">
+        <div class="navbar-header">
+          <a class="navbar-brand">
+            {% image '@FeedbackUserBundle/Resources/public/images/cnx_new_header_logo_white.png' %}
+            <img class="img-responsive" src="{{  asset_url }}" alt="logo">
+            {% endimage %}
+          </a>  
+        </div>
+    </div>    
+</div>
+
+<div class="row form-container">
+    <div class="col-md-7">
+      {% image '@FeedbackAnonymousBundle/Resources/public/images/survey-people.jpg' %}
+      <img class="img-responsive" src="{{  asset_url }}" alt="logo">
+      {% endimage %}
+    </div>
+    <div class="col-md-5">
+      <form class="survey-anonymous">
+        <input type="hidden" name="anonymous" value="{{ anonymous }}" />
+        <input type="hidden" name="selected_values-inputEl" value="{{ survey_id }}" />
+        <h1>{{ survey_name }}</h1>
+        <h2>Tell us what you think</h2>
+        {% image '@FeedbackUserBundle/Resources/public/images/take_survey_2.jpg' %}
+          <a href="#" value="1" class="anonymous-login"><img class="img-responsive" src="{{  asset_url }}" alt="logo"></a>
+        {% endimage %}
+        <div class="row" style="margin-top: 10px">
+          <div style="float: left;" class="alert col-sm-2">
+            <p>&nbsp;</p>
+          </div>
+          <div id="anonymouse-msg" class="alert alert-success col-sm-9" role="alert" style="display: none; float: right;">
+            <strong></strong><p></p>
+          </div>
+          
+        </div>
+      </form><!--.survey-anonymous-->
+    </div><!--.col-md-6-->
+</div>
+
+<script type="text/javascript">
+    
+    $('.anonymous-login').on('click', anonymousLogin);
+    function anonymousLogin(){
+      var anonymous_form =$('.survey-anonymous').serialize();
+      var btn = $(this);
+      if(btn.hasClass('disabled'))
+        return;
+
+      btn.addClass('disabled');
+      $.ajax({
+            url: '{{ submit_url }}',
+            type: 'POST',
+            data: anonymous_form,
+            success: function(data){
+               $('.employee-loader').hide();
+               if(data.status !== "success"){
+                btn.removeClass('disabled');
+                 handleResult({
+                    id : 'anonymouse-msg',
+                    success: false,
+                    msg: data.msg
+                  });
+                 return;
+               }
+               else {
+                  handleResult({
+                    id : 'anonymouse-msg',
+                    success: true,
+                    msg: data.msg
+                  });
+                  setTimeout(function(){
+                    window.location.href = "/survey";
+                  },2000)
+                 return;
+               }
+            }
+        });
+    }
+
+    function handleResult(data) {
+      var el = $('#'+ data.id);
+          $('.form-group').removeClass('has-error');
+      if(data.field){
+          var container = $('#'+ data.field).parent().parent();
+          container.addClass('has-error');
+      }
+      
+
+      var addClass = (data.success) ? 'alert-success' : 'alert-danger';
+      el.removeClass('alert-success').removeClass('alert-danger');
+      el.addClass(addClass);
+      el.find('p').text(data.msg);
+      el.slideDown(400, function() {
+          setTimeout(function() {
+          el.slideUp();
+          }, 5000);
+      });
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,66 @@
+.colorgraph {
+  height: 5px;
+  border-top: 0;
+  background: #c4e17f;
+  border-radius: 5px;
+  background-image: -webkit-linear-gradient(left, #c4e17f, #c4e17f 12.5%, #f7fdca 12.5%, #f7fdca 25%, #fecf71 25%, #fecf71 37.5%, #f0776c 37.5%, #f0776c 50%, #db9dbe 50%, #db9dbe 62.5%, #c49cde 62.5%, #c49cde 75%, #669ae1 75%, #669ae1 87.5%, #62c2e4 87.5%, #62c2e4);
+  background-image: -moz-linear-gradient(left, #c4e17f, #c4e17f 12.5%, #f7fdca 12.5%, #f7fdca 25%, #fecf71 25%, #fecf71 37.5%, #f0776c 37.5%, #f0776c 50%, #db9dbe 50%, #db9dbe 62.5%, #c49cde 62.5%, #c49cde 75%, #669ae1 75%, #669ae1 87.5%, #62c2e4 87.5%, #62c2e4);
+  background-image: -o-linear-gradient(left, #c4e17f, #c4e17f 12.5%, #f7fdca 12.5%, #f7fdca 25%, #fecf71 25%, #fecf71 37.5%, #f0776c 37.5%, #f0776c 50%, #db9dbe 50%, #db9dbe 62.5%, #c49cde 62.5%, #c49cde 75%, #669ae1 75%, #669ae1 87.5%, #62c2e4 87.5%, #62c2e4);
+  background-image: linear-gradient(to right, #c4e17f, #c4e17f 12.5%, #f7fdca 12.5%, #f7fdca 25%, #fecf71 25%, #fecf71 37.5%, #f0776c 37.5%, #f0776c 50%, #db9dbe 50%, #db9dbe 62.5%, #c49cde 62.5%, #c49cde 75%, #669ae1 75%, #669ae1 87.5%, #62c2e4 87.5%, #62c2e4);
+
+}
+
+.input-group-addon {
+    background-color: none !important;
+    border: none !important;
+    border-radius: none !important;
+    font-size: !important;
+
+}
+
+.form_navigator {
+    margin: 20px 0 0 0;
+}
+.question {
+    width: 330px;
+}
+
+.input-group-addon {
+    background: none;
+    width: 30px;
+}
+
+.center-buttons {
+    margin: 0 auto !important;
+}
+
+
+#selected_values {
+	margin-left: 15px;
+}
+#comboboxRow table {
+	overflow: hidden;
+	border-collapse:separate;
+	border-radius: 6px;
+}
+
+#selected_values-inputEl {
+	font-size:17px;
+	border-radius: 6px 0 0 6px;
+	color:#555555;
+	font-family: helvetica,arial,verdana,sans-serif;
+	padding : 10px 16px;
+	line-height : 1.33;
+	height:45px;
+}
+
+#ext-gen1023 {
+	border-radius:0 6px 6px 0;
+}
+
+.row label {
+	font-size:18px;
+	color:#555555;
+	font-family: helvetica,arial,verdana,sans-serif;
+	line-height : 1.33;
+}

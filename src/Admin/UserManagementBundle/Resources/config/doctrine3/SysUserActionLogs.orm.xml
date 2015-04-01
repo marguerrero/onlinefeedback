@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping http://doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+  <entity name="Admin\UserManagementBundle\Entity\SysUserActionLogs" table="sys_user_action_logs" repository-class="Admin\UserManagementBundle\Entity\SysUserActionLogsRepository">
+    <id name="idsysUserActionLogs" type="integer" column="idsys_user_action_logs">
+      <generator strategy="SEQUENCE"/>
+    </id>
+    <field name="module" type="string" column="module" length="80" nullable="true"/>
+    <field name="affectedId" type="integer" column="affected_id" nullable="false"/>
+    <field name="affectedData" type="text" column="affected_data" nullable="false"/>
+    <field name="username" type="string" column="username" length="255" nullable="true"/>
+    <field name="actionstamp" type="datetime" column="actionstamp" nullable="true"/>
+  </entity>
+</doctrine-mapping>

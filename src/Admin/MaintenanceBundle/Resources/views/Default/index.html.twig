@@ -1,0 +1,18 @@
+{% extends '::base.html.twig' %}
+
+{% block body %}
+	<div id="module_container"><div id="form_content" class="maintenance"></div></div>
+	{% stylesheets  filter='cssrewrite'
+		'bundles/extjs-master/resources/ext-theme-neptune/ext-theme-neptune-all.css'
+		'@AdminMaintenanceBundle/Resources/public/css/style.css'
+	%}
+		 <link rel="stylesheet" href="{{ asset_url }}" />
+	{% endstylesheets %}
+	{% javascripts 
+	  'bundles/extjs-master/ext-all-debug.js'
+	  'bundles/extjs-master/ext-theme-neptune.js'
+	  '@AdminMaintenanceBundle/Resources/public/js/pantry_maintenance.js'
+	%}
+	  <script type="text/javascript" src="{{ asset_url }}"></script>
+	{% endjavascripts %}
+{% endblock %}

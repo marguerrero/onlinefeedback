@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping http://doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+  <entity name="Admin\MaintenanceBundle\Entity\UserAccount" table="user_account">
+    <id name="id" type="integer" column="id">
+      <generator strategy="SEQUENCE"/>
+    </id>
+    <field name="username" type="string" column="username" length="150" nullable="false"/>
+    <field name="userRole" type="string" column="user_role" length="50" nullable="false"/>
+    <field name="active" type="boolean" column="active" nullable="false"/>
+  </entity>
+</doctrine-mapping>

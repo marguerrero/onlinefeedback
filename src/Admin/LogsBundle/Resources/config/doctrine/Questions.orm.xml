@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping http://doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+  <entity name="Admin\LogsBundle\Entity\Questions" table="questions">
+    <indexes>
+      <index name="IDX_8ADC54D591D79BD3" columns="c_id"/>
+      <index name="IDX_8ADC54D561220EA6" columns="creator_id"/>
+    </indexes>
+    <id name="id" type="integer" column="id">
+      <generator strategy="SEQUENCE"/>
+    </id>
+    <field name="created" type="datetime" column="created" nullable="false"/>
+    <field name="description" type="string" column="description" length="150" nullable="false"/>
+    <field name="type" type="string" column="type" length="150" nullable="false"/>
+    <many-to-one field="creator" target-entity="UserAccount">
+      <join-columns>
+        <join-column name="creator_id" referenced-column-name="id"/>
+      </join-columns>
+    </many-to-one>
+    <many-to-one field="c" target-entity="Category">
+      <join-columns>
+        <join-column name="c_id" referenced-column-name="id"/>
+      </join-columns>
+    </many-to-one>
+  </entity>
+</doctrine-mapping>

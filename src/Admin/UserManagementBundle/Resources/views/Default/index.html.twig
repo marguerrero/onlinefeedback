@@ -1,0 +1,17 @@
+{% extends '::base.html.twig' %}
+
+{% block body %}
+	<div id="module_container"><div id="form_content" class="user_management"></div></div>
+	{% stylesheets  filter='cssrewrite'
+		'bundles/extjs-master/resources/ext-theme-neptune/ext-theme-neptune-all.css'
+	%}
+		 <link rel="stylesheet" href="{{ asset_url }}" />
+	{% endstylesheets %}
+	{% javascripts 
+	  'bundles/extjs-master/ext-all-debug.js'
+	  'bundles/extjs-master/ext-theme-neptune.js'
+	  '@AdminUserManagementBundle/Resources/public/js/pantry_user_management.js'
+	%}
+	  <script type="text/javascript" src="{{ asset_url }}"></script>
+	{% endjavascripts %}
+{% endblock %}

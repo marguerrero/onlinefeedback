@@ -1,0 +1,89 @@
+.form-horizontal .form-group {
+    margin-right: 0px;
+    margin-left: 0px;
+    margin-bottom: 15px;
+}
+
+label {
+    font-weight: normal;
+}
+
+.hide {
+    display: none;
+}
+
+.table tbody > tr > td, .table tfoot > tr > td {
+    padding: 3px;
+}
+
+.layout1 label{
+    word-break: break-all;
+}
+
+#question_form{
+
+    border: solid 1px #ddd;
+    box-shadow: 1px 2px #ddd; 
+    -webkit-border-radius: 16px;
+    -moz-border-radius: 16px;
+    border-radius: 16px;
+    padding: 10px;
+   
+}
+
+#next{
+    float: right;
+}
+
+#previous{
+    float: left;
+}
+
+.layout1{
+    float: left;
+    text-shadow: 2px 2px 5px #B0B1B0;
+    clear: right;
+}
+
+.layout2 {
+    text-shadow:2px 2px 5px #B0B1B0
+}
+
+.layout{
+    float: left;
+    text-shadow: 2px 2px 5px #B0B1B0;
+    clear: left;
+}
+
+body {
+  padding-top: 50px;
+}
+
+.starter-template {
+  padding: 40px 15px;
+  text-align: center;
+ 
+}
+
+.survey-template {
+  padding: 0px 15px;
+  text-align: center;
+ 
+}
+
+.thank_you-template{
+ padding: 40px 15px;
+ text-align: center;
+ margin-top: 120px;
+}
+
+.navbar{
+  margin-bottom: -50px;
+  margin-top: -48px;
+}
+
+.cover-container{
+ margin-top: -230px;
+}
+
+
