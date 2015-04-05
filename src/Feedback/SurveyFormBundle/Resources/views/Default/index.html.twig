@@ -27,6 +27,14 @@
                 </div>
             <div>   
         </div>
+        <div class="col-md-6 pull-right" style="margin-top: 30px;">
+          <div style="float: left;" class="alert col-sm-2">
+            <p>&nbsp;</p>
+          </div>
+          <div id="msg-container" class="alert alert-success col-sm-9" role="alert" style="margin-top: 20px; display: none; float: right;">
+            <strong></strong><p></p>
+          </div>
+        </div>
     </div> 
        
     <div class="container">
@@ -75,9 +83,7 @@
  {% javascripts 
       'bundles/bootstrap/assets/js/jquery.js'
       'bundles/bootstrap/dist/js/bootstrap.min.js'
-      'bundles/alertify-js/lib/alertify.min.js'
-      'bundles/jquery-validation/dist/jquery.validate.min.js'
-      'bundles/jquery-validation/dist/additional-methods.min.js'
+      'bundles/alertify-js/src/alertify.js' 
       '@FeedbackSurveyFormBundle/Resources/public/js/survey.js'
     %}
       <script type="text/javascript" src="{{ asset_url }}"></script>

@@ -72,7 +72,7 @@ class DefaultController extends Controller
                         'id' => $q_id,
                         'description' => $question->getDescription(),
                         'type' => $q_type,
-                        'optional' => $question->getOptional(),
+                        'optional' => ($question->getOptional()) ? 'optional-field' : 'required-field',
                         'options' => $options
                      );
                      $data[$category->getCategoryName()][] = $temp;
@@ -120,8 +120,9 @@ class DefaultController extends Controller
             }
         
             $conc_id = $session->get('conc_id'); 
-            if ( $this->sendNotification($user, $conc_id) ) {
-                
+            # uncomment this on cx environment
+            // if ( $this->sendNotification($user, $conc_id) ) {
+            if(true){
                 $em->flush();
                 $em->clear();
                 

@@ -156,11 +156,11 @@ pantry_feedback_report_js.app = function()
 							model : "Concessionaire",
 							id : "selected_values",
 	                    	//emptyText: 'Select Concessionaire',
-	                    	fieldLabel: "Concessionaire",
+	                    	fieldLabel: "Survey Type",
 	                    	width: 300,
 	                    	labelWidth:120,
 						    //multiSelect: true,
-                            blankText: "The Concessionaire field is required.",
+                            blankText: "The Survey Type field is required.",
 						    multiSelect: false,
 						    displayField: 'description',
 						    //valueField: 'description',
@@ -223,7 +223,8 @@ pantry_feedback_report_js.app = function()
                                         icon: Ext.MessageBox.INFO
                                     });
                                     
-                                    window.location.href = 'http://cdo-apps2.concentrix.ph/online_feedback/web/reports/online_feeback_report-' + opt.result.data
+                                    // window.location.href = 'http://cdo-apps2.concentrix.ph/online_feedback/web/reports/online_feeback_report-' + opt.result.data
+                                    window.location.href = global_report_url + '/online_feeback_report-' + opt.result.data
                                }
                                
                                else

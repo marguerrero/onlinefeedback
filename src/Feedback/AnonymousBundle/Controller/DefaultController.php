@@ -29,7 +29,7 @@ class DefaultController extends Controller
         return $this->render('FeedbackAnonymousBundle:Default:error.html.twig', $retval); 
     }   
     /**
-     * @Route("/type/{survey_id}")
+     * @Route("/type/{survey_id}", name="_specific_survey_type")
      * @Template()
      */
     public function indexAction($survey_id)
@@ -42,8 +42,9 @@ class DefaultController extends Controller
             $numeric_check = is_numeric($survey_id);
             if(!$numeric_check)
                 throw new \Exception("Invalid survey link", 1);
-                
             $survey = $em->getRepository("AdminMaintenanceBundle:Concessionaire")->findOneBy(array('idconcessionaire'=>$survey_id));
+            
+            
         } catch (\Exception $e) {
             $error = array(
                 'title' => "Error Found:",
@@ -58,13 +59,14 @@ class DefaultController extends Controller
         // $hashed_id = "75";
         // $test = $encryption->encrypt($hashed_id, $crypt_key);
         // print '<pre>';
-        // print_r($test);
+        // print_r($survey);
         // die();
         
         $retval = array(
             'survey_id' => $survey_id,
             'survey_name' => $survey->getDescription(),
             'anonymous' => 1,
+            'survey_url' => $this->generateUrl('_survey'),
             'submit_url' => $this->generateUrl('_login_check_anonymous')
         );
         return $retval;
@@ -84,7 +86,7 @@ class DefaultController extends Controller
         $user_authentication = $this->get('user_authentication');
         $session = new Session();
         $session->start();
-        $user_authentication->setLoginInfo($username, $password);
+        // $user_authentication->setLoginInfo($username, $password);
         
         if(!$conc_selected){
             $response = new JsonResponse();

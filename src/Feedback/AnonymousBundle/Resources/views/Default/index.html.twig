@@ -6,12 +6,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
    {% stylesheets 
       'bundles/bootstrap/dist/css/bootstrap.css'
-      'bundles/alertify-js/themes/alertify.core.css' 
-      'bundles/alertify-js/themes/alertify.default.css' 
       '@FeedbackUserBundle/Resources/public/css/login_styles.css'
-      'bundles/feedback/main.css'
-        'bundles/extjs-master/resources/ext-theme-neptune/ext-theme-neptune-all.css'
-        'bundles/extjs-master/resources/ext-theme-neptune/style.css'
       filter='cssrewrite'
     %}
       <link rel="stylesheet" href="{{asset_url}}" />
@@ -19,11 +14,6 @@
 
     {% javascripts 
       'bundles/bootstrap/assets/js/jquery.js'
-      'bundles/jquery-validation/dist/jquery.validate.min.js'
-      'bundles/jquery-validation/dist/additional-methods.min.js'
-      'bundles/alertify-js/lib/alertify.min.js'
-      'bundles/bootstrap/dist/js/bootstrap.min.js'
-      'bundles/extjs-master/ext-all.js'
       '@FeedbackUserBundle/Resources/public/js/pantry_user_js.js'
     %}
       <script type="text/javascript" src="{{ asset_url }}"></script>
@@ -34,7 +24,7 @@
       }
       .form-container {
         max-width: 1124px;
-        margin: 65px; auto;
+        margin: 65px auto;
         padding: 25px;
       }
       .anonymous-login {
@@ -128,7 +118,7 @@
                     msg: data.msg
                   });
                   setTimeout(function(){
-                    window.location.href = "/survey";
+                    window.location.href = "{{ survey_url }}";
                   },2000)
                  return;
                }

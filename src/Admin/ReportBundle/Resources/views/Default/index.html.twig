@@ -1,6 +1,9 @@
 {% extends '::base.html.twig' %}
 
 {% block body %}
+	<script type="text/javascript">
+		var global_report_url = "{{ report_url }}";
+	</script>
 	<div id="module_container"><div id="form_content" class="report-generation"></div></div>
 	{% stylesheets  filter='cssrewrite'
 		'bundles/extjs-master/resources/ext-theme-neptune/ext-theme-neptune-all.css'

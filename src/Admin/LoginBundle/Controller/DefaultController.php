@@ -69,7 +69,7 @@ class DefaultController extends Controller
 		try
 		{
 			$em = $this->getDoctrine()->getManager();
-			$user = $em->getRepository("AdminLoginBundle:UserAccount")->findByUsername($username);
+			$user = $em->getRepository("FeedbackSurveyFormBundle:UserAccount")->findByUsername($username);
 			if ( !empty($user) ) {
 				$user_found = 1;
 				$db_pass = $user[0]->getPassword();

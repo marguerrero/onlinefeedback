@@ -8,7 +8,7 @@ use Doctrine\ORM\Mapping as ORM;
  * Options
  *
  * @ORM\Table(name="options")
- * @ORM\Entity
+ * @ORM\Entity(repositoryClass="Feedback\SurveyFormBundle\Entity\OptionsRepository")
  */
 class Options
 {

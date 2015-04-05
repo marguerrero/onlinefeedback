@@ -33,7 +33,9 @@
       <div class="navbar navbar-static-top">
             <div class="container">
                 <div class="navbar-header">
-                  <a class="navbar-brand"><img class="img-responsive" src="http://www.concentrix.com/wp-content/uploads/2013/10/concxlogo_business_multi1.png" alt="logo"></a>  
+                  {% image '@FeedbackUserBundle/Resources/public/images/cnx_new_header_logo_white.png' %}
+                    <img class="img-responsive" src="{{  asset_url }}" alt="logo">
+                  {% endimage %}
                 </div>
             </div>    
        </div>
