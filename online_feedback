@@ -1,0 +1,641 @@
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 8.1.23
+-- Dumped by pg_dump version 8.1.23
+-- Started on 2014-12-03 09:41:17 PHT
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = off;
+SET check_function_bodies = false;
+SET client_min_messages = warning;
+SET escape_string_warning = off;
+
+--
+-- TOC entry 264 (class 2612 OID 210637)
+-- Name: plpgsql; Type: PROCEDURAL LANGUAGE; Schema: -; Owner: 
+--
+
+CREATE PROCEDURAL LANGUAGE plpgsql;
+
+
+SET search_path = public, pg_catalog;
+
+SET default_tablespace = '';
+
+SET default_with_oids = false;
+
+--
+-- TOC entry 1201 (class 1259 OID 121892427)
+-- Dependencies: 4
+-- Name: category; Type: TABLE; Schema: public; Owner: webuser; Tablespace: 
+--
+
+CREATE TABLE category (
+    id integer NOT NULL,
+    creator_id integer,
+    created timestamp without time zone NOT NULL,
+    category_name character varying(150) NOT NULL,
+    idconcessionaire integer
+);
+
+
+ALTER TABLE category OWNER TO webuser;
+
+--
+-- TOC entry 1209 (class 1259 OID 122239486)
+-- Dependencies: 1536 4
+-- Name: concessionaire; Type: TABLE; Schema: public; Owner: webuser; Tablespace: 
+--
+
+CREATE TABLE concessionaire (
+    idconcessionaire serial NOT NULL,
+    creator_id integer,
+    created_at timestamp(0) without time zone DEFAULT now(),
+    description character varying(200)
+);
+
+
+ALTER TABLE concessionaire OWNER TO webuser;
+
+--
+-- TOC entry 1582 (class 0 OID 0)
+-- Dependencies: 1208
+-- Name: concessionaire_idconcessionaire_seq; Type: SEQUENCE SET; Schema: public; Owner: webuser
+--
+
+SELECT pg_catalog.setval(pg_catalog.pg_get_serial_sequence('concessionaire', 'idconcessionaire'), 73, true);
+
+
+--
+-- TOC entry 1211 (class 1259 OID 122239540)
+-- Dependencies: 1537 1539 4
+-- Name: email_recipient; Type: TABLE; Schema: public; Owner: webuser; Tablespace: 
+--
+
+CREATE TABLE email_recipient (
+    id serial NOT NULL,
+    email character varying(80),
+    active boolean DEFAULT false,
+    created_at timestamp(0) without time zone DEFAULT now() NOT NULL
+);
+
+
+ALTER TABLE email_recipient OWNER TO webuser;
+
+--
+-- TOC entry 1583 (class 0 OID 0)
+-- Dependencies: 1210
+-- Name: email_recipient_id_seq; Type: SEQUENCE SET; Schema: public; Owner: webuser
+--
+
+SELECT pg_catalog.setval(pg_catalog.pg_get_serial_sequence('email_recipient', 'id'), 38, true);
+
+
+--
+-- TOC entry 1205 (class 1259 OID 121892456)
+-- Dependencies: 4
+-- Name: employee_answers; Type: TABLE; Schema: public; Owner: webuser; Tablespace: 
+--
+
+CREATE TABLE employee_answers (
+    id integer NOT NULL,
+    q_id integer,
+    creator_id integer,
+    actionstamp timestamp without time zone NOT NULL,
+    username character varying(150) NOT NULL,
+    value character varying(150) NOT NULL
+);
+
+
+ALTER TABLE employee_answers OWNER TO webuser;
+
+--
+-- TOC entry 1207 (class 1259 OID 121892473)
+-- Dependencies: 4
+-- Name: employee_logs; Type: TABLE; Schema: public; Owner: webuser; Tablespace: 
+--
+
+CREATE TABLE employee_logs (
+    id integer NOT NULL,
+    username character varying(150) NOT NULL,
+    actionstamp timestamp without time zone NOT NULL
+);
+
+
+ALTER TABLE employee_logs OWNER TO webuser;
+
+--
+-- TOC entry 1203 (class 1259 OID 121892439)
+-- Dependencies: 4
+-- Name: questions; Type: TABLE; Schema: public; Owner: webuser; Tablespace: 
+--
+
+CREATE TABLE questions (
+    id integer NOT NULL,
+    c_id integer,
+    creator_id integer,
+    created timestamp without time zone NOT NULL,
+    description character varying(150) NOT NULL,
+    "type" character varying(150) NOT NULL
+);
+
+
+ALTER TABLE questions OWNER TO webuser;
+
+--
+-- TOC entry 1213 (class 1259 OID 122239594)
+-- Dependencies: 1541 1542 4
+-- Name: sys_user_action_logs; Type: TABLE; Schema: public; Owner: webuser; Tablespace: 
+--
+
+CREATE TABLE sys_user_action_logs (
+    idsys_user_action_logs serial NOT NULL,
+    module character varying(80),
+    affected_id integer DEFAULT (-1),
+    affected_data text NOT NULL,
+    username character varying(255),
+    actionstamp timestamp(0) without time zone DEFAULT now(),
+    method character varying(100)
+);
+
+
+ALTER TABLE sys_user_action_logs OWNER TO webuser;
+
+--
+-- TOC entry 1584 (class 0 OID 0)
+-- Dependencies: 1212
+-- Name: sys_user_action_logs_idsys_user_action_logs_seq; Type: SEQUENCE SET; Schema: public; Owner: webuser
+--
+
+SELECT pg_catalog.setval(pg_catalog.pg_get_serial_sequence('sys_user_action_logs', 'idsys_user_action_logs'), 139, true);
+
+
+--
+-- TOC entry 1199 (class 1259 OID 121892419)
+-- Dependencies: 4
+-- Name: user_account; Type: TABLE; Schema: public; Owner: webuser; Tablespace: 
+--
+
+CREATE TABLE user_account (
+    id integer NOT NULL,
+    username character varying(150) NOT NULL,
+    user_role character varying(50) NOT NULL,
+    active boolean NOT NULL,
+    email character varying(80),
+    "password" character varying(65)
+);
+
+
+ALTER TABLE user_account OWNER TO webuser;
+
+--
+-- TOC entry 1571 (class 0 OID 121892427)
+-- Dependencies: 1201
+-- Data for Name: category; Type: TABLE DATA; Schema: public; Owner: webuser
+-- File: 1571.dat
+--
+
+COPY category (id, creator_id, created, category_name, idconcessionaire) FROM stdin;
+125	\N	2014-06-20 18:43:50	Cleanliness1	13
+140	\N	2014-11-18 10:34:22	category3	17
+141	\N	2014-11-18 14:26:08	4.1 category	17
+126	\N	2014-08-16 14:34:45	Customer Service2	14
+158	\N	2014-11-26 09:28:52	sample categories	57
+159	\N	2014-11-27 10:18:57	QAtestcat	61
+160	\N	2014-11-27 10:19:18	QA textcat	61
+\.
+
+
+--
+-- TOC entry 1575 (class 0 OID 122239486)
+-- Dependencies: 1209
+-- Data for Name: concessionaire; Type: TABLE DATA; Schema: public; Owner: webuser
+-- File: 1575.dat
+--
+
+COPY concessionaire (idconcessionaire, creator_id, created_at, description) FROM stdin;
+13	\N	2014-11-18 14:21:50	Gracias1
+17	\N	2014-11-18 14:22:05	Gracias3
+14	\N	2014-11-18 14:21:56	Gracias2
+37	\N	2014-11-25 16:59:50	Gracias4
+61	\N	2014-11-27 10:18:27	QAtests
+57	\N	2014-11-28 15:32:12	longs
+\.
+
+
+--
+-- TOC entry 1576 (class 0 OID 122239540)
+-- Dependencies: 1211
+-- Data for Name: email_recipient; Type: TABLE DATA; Schema: public; Owner: webuser
+-- File: 1576.dat
+--
+
+COPY email_recipient (id, email, active, created_at) FROM stdin;
+35	jan.simoy@concentrix.com	f	2014-11-28 15:58:04
+36	reymar.guerrero@concentrix.com	f	2014-12-01 15:03:43
+34	tyro.tan@concentrix.com	t	2014-11-28 15:55:21
+37	erwin.baldoman@concentrix.com	t	2014-12-02 08:26:24
+\.
+
+
+--
+-- TOC entry 1573 (class 0 OID 121892456)
+-- Dependencies: 1205
+-- Data for Name: employee_answers; Type: TABLE DATA; Schema: public; Owner: webuser
+-- File: 1573.dat
+--
+
+COPY employee_answers (id, q_id, creator_id, actionstamp, username, value) FROM stdin;
+812	291	\N	2014-11-19 11:27:10	tyro.tan	4
+813	292	\N	2014-11-19 11:27:10	tyro.tan	4  commnets
+814	293	\N	2014-11-19 11:27:10	tyro.tan	4th category comment
+815	281	\N	2014-11-19 11:49:55	tyro.tan	1
+816	283	\N	2014-11-19 11:49:55	tyro.tan	1
+817	284	\N	2014-11-19 11:49:55	tyro.tan	1
+818	286	\N	2014-11-19 11:52:56	tyro.tan	5
+819	287	\N	2014-11-19 11:52:56	tyro.tan	5
+820	288	\N	2014-11-19 11:52:56	tyro.tan	5
+821	289	\N	2014-11-19 11:52:56	tyro.tan	5
+822	286	\N	2014-11-19 16:47:07	Anonymous	2
+823	287	\N	2014-11-19 16:47:07	Anonymous	2
+824	288	\N	2014-11-19 16:47:07	Anonymous	2
+825	289	\N	2014-11-19 16:47:07	Anonymous	2
+826	289	\N	2014-11-24 17:23:08	tyro.tan	2
+827	289	\N	2014-11-24 17:30:14	tyro.tan	2
+828	289	\N	2014-11-26 18:07:53	Anonymous	2
+829	289	\N	2014-11-26 18:09:24	tyro.tan	2
+830	289	\N	2014-11-26 18:13:10	Anonymous	2
+831	289	\N	2014-11-26 19:26:34	Anonymous	2
+833	289	\N	2014-11-26 19:30:35	Anonymous	2
+834	289	\N	2014-11-26 20:31:47	Anonymous	2
+835	289	\N	2014-11-26 20:34:09	Anonymous	2
+836	289	\N	2014-11-26 20:36:35	Anonymous	2
+837	289	\N	2014-11-26 20:56:39	Anonymous	2
+838	289	\N	2014-11-26 20:58:34	Anonymous	3
+839	284	\N	2014-11-26 21:00:15	tyro.tan	1
+840	284	\N	2014-11-27 08:12:24	Anonymous	1
+841	289	\N	2014-11-27 08:15:04	tyro.tan	2
+842	293	\N	2014-11-27 08:18:14	Anonymous	comment 4
+843	284	\N	2014-11-27 08:58:45	tyro.tan	1
+844	284	\N	2014-11-27 15:55:11	Anonymous	5
+845	284	\N	2014-11-27 16:04:11	Anonymous	5
+846	281	\N	2014-11-27 16:12:22	Anonymous	3
+847	283	\N	2014-11-27 16:12:22	Anonymous	4
+848	284	\N	2014-11-27 16:12:22	Anonymous	5
+849	281	\N	2014-11-28 15:59:46	tyro.tan	2
+850	283	\N	2014-11-28 15:59:46	tyro.tan	3
+851	284	\N	2014-11-28 15:59:46	tyro.tan	4
+852	311	\N	2014-12-01 13:46:56	Anonymous	QAtestcat
+853	311	\N	2014-12-01 15:04:50	tyro.tan	this is my QAtestcat answer
+854	281	\N	2014-12-02 08:03:51	tyro.tan	1
+855	283	\N	2014-12-02 08:03:51	tyro.tan	2
+856	284	\N	2014-12-02 08:03:51	tyro.tan	3
+857	281	\N	2014-12-02 08:12:06	tyro.tan	1
+858	283	\N	2014-12-02 08:12:06	tyro.tan	2
+859	284	\N	2014-12-02 08:12:06	tyro.tan	3
+860	281	\N	2014-12-02 09:43:28	Anonymous	3
+861	283	\N	2014-12-02 09:43:28	Anonymous	3
+862	284	\N	2014-12-02 09:43:28	Anonymous	3
+863	315	\N	2014-12-02 09:43:28	Anonymous	Test
+\.
+
+
+--
+-- TOC entry 1574 (class 0 OID 121892473)
+-- Dependencies: 1207
+-- Data for Name: employee_logs; Type: TABLE DATA; Schema: public; Owner: webuser
+-- File: 1574.dat
+--
+
+COPY employee_logs (id, username, actionstamp) FROM stdin;
+\.
+
+
+--
+-- TOC entry 1572 (class 0 OID 121892439)
+-- Dependencies: 1203
+-- Data for Name: questions; Type: TABLE DATA; Schema: public; Owner: webuser
+-- File: 1572.dat
+--
+
+COPY questions (id, c_id, creator_id, created, description, "type") FROM stdin;
+281	125	\N	2014-06-20 18:44:07	1.1 Pantry is clean (Display cabinets and working station are clean)	rating
+283	125	\N	2014-06-20 18:58:41	1.2 Pantry smells good	rating
+284	125	\N	2014-06-20 19:00:32	1.3 Staff proper hygiene (hair net, gloves, etc)	rating
+286	126	\N	2014-08-16 14:35:00	2.1 Pantry is clean (Display cabinets and working station are clean)	rating
+287	126	\N	2014-08-16 14:35:12	2.2 Pantry smells good	rating
+288	126	\N	2014-08-16 14:35:26	2.3 Staff proper hygiene (hair net, gloves, etc)	rating
+291	140	\N	2014-11-18 10:34:30	3.1 question?	rating
+292	140	\N	2014-11-18 10:34:43	3.2 comment	comment
+293	141	\N	2014-11-18 14:26:23	comment 4.1.1	comment
+289	126	\N	2014-11-13 11:09:40	This should probably be the long long long long longestttt questionnnnnnnnnn?	rating
+310	158	\N	2014-11-26 09:33:30	This is a sample question	comment
+311	159	\N	2014-11-27 10:21:10	q	comment
+313	158	\N	2014-11-28 11:49:04	him'	comment
+314	158	\N	2014-11-28 11:51:08	we	rating
+315	125	\N	2014-12-02 09:40:43	1.4. Any additonal feedback?	comment
+\.
+
+
+--
+-- TOC entry 1577 (class 0 OID 122239594)
+-- Dependencies: 1213
+-- Data for Name: sys_user_action_logs; Type: TABLE DATA; Schema: public; Owner: webuser
+-- File: 1577.dat
+--
+
+COPY sys_user_action_logs (idsys_user_action_logs, module, affected_id, affected_data, username, actionstamp, method) FROM stdin;
+42	User@saveUser	117	[{"username":"test1"},{"password":4},{"user_role":"admin"},{"email":"test@test.com"},{"active":"true"}]	Administrator	2014-11-27 10:53:37	\N
+43	User@updateUser	119	[{"mode":"update"},{"oldUsername":"test1"},{"oldEmail":"test@test.com"},{"username":"test1"},{"password":0},{"user_role":"admin"},{"email":"test@test.com"},{"active":"false"}]	Administrator	2014-11-27 10:55:54	\N
+44	User@updateUser	119	[{"mode":"update"},{"oldUsername":"test1"},{"oldEmail":"test@test.com"},{"username":"test1"},{"password":0},{"user_role":"report"},{"email":"test@test.com"},{"active":"true"}]	Administrator	2014-11-27 10:57:06	\N
+45	User@updateUser	119	[{"mode":"update"},{"oldUsername":"test1"},{"oldEmail":"test@test.com"},{"username":"test1"},{"password":0},{"user_role":"admin"},{"email":"test@test.com"},{"active":"true"}]	Administrator	2014-11-27 10:57:32	\N
+46	User@saveUser	120	[{"username":"a"},{"password":1},{"user_role":"admin"},{"email":"a@as.co"},{"active":"true"}]	Administrator	2014-11-27 17:46:40	\N
+47	User@updateUser	89	[{"mode":"update"},{"oldUsername":"tyro"},{"oldEmail":"tyro.tan@concentrix.com"},{"username":"tyro"},{"password":0},{"user_role":"admin"},{"email":"tyro.tan@concentrix.com"},{"active":"true"}]	Administrator	2014-11-27 18:13:53	\N
+48	User@updateUser	116	[{"mode":"update"},{"oldUsername":"username2"},{"oldEmail":"email@email.com"},{"username":"username2"},{"password":0},{"user_role":"report"},{"email":"email@email.com"},{"active":"true"}]	tyro	2014-11-27 18:25:20	\N
+49	User@updateUser	89	[{"mode":"update"},{"oldUsername":"tyro"},{"oldEmail":"tyro.tan@concentrix.com"},{"username":"tyro"},{"password":0},{"user_role":"admin"},{"email":"tyro.tan@concentrix.com"},{"active":"true"}]	tyro	2014-11-27 18:26:59	\N
+50	User@updateUser	110	[{"mode":"update"},{"oldUsername":"test"},{"oldEmail":"tantyro@yahoo.co"},{"username":"test"},{"password":0},{"user_role":"admin"},{"email":"tantyro@yahoo.co"},{"active":"true"}]	Administrator	2014-11-27 18:34:19	\N
+51	User@saveUser	123	[{"username":"aa"},{"password":1},{"user_role":"report"},{"email":"w@ser.co"},{"active":"true"}]	Administrator	2014-11-27 21:03:24	\N
+52	User@updateUser	122	[{"mode":"update"},{"oldUsername":"a"},{"oldEmail":"a@as.co"},{"username":"aaw"},{"password":0},{"user_role":"admin"},{"email":"a@as.co"},{"active":"true"}]	Administrator	2014-11-27 21:07:53	\N
+53	User@deleteUser	122	[{"username":"aaw"}]	Administrator	2014-11-27 21:10:05	\N
+54	User@saveUser	126	[{"username":"qq"},{"password":2},{"user_role":"admin"},{"email":"qq@yahoo.com"},{"active":"true"}]	Administrator	2014-11-27 21:10:26	\N
+55	User@deleteUser	128	[{"username":"qq"}]	Administrator	2014-11-27 21:10:44	\N
+56	User@saveUser	129	[{"username":"qq"},{"password":2},{"user_role":"admin"},{"email":"qq@wsetr.co"},{"active":"true"}]	Administrator	2014-11-27 21:10:56	\N
+57	User@deleteUser	131	[{"username":"qq"}]	tyro	2014-11-28 09:48:00	\N
+58	Admin\\UserManagementBundle\\Controller\\DefaultController::saveUser	132	[{"username":"wow"},{"password":2},{"user_role":"admin"},{"email":"w@a.co"},{"active":"false"}]	tyro	2014-11-28 09:50:48	\N
+59	Admin\\UserManagementBundle\\Controller\\DefaultController::updateUser	134	[{"mode":"update"},{"oldUsername":"wow"},{"oldEmail":"w@a.co"},{"username":"woww"},{"password":0},{"user_role":"admin"},{"email":"w@a.co"},{"active":"false"}]	tyro	2014-11-28 10:16:19	updateUser
+60	Admin\\UserManagementBundle\\Controller\\DefaultController::deleteUser	134	[{"username":"woww"}]	tyro	2014-11-28 10:16:23	deleteUser
+61	Admin\\UserManagementBundle\\Controller\\DefaultController::saveUser	135	[{"username":"ha"},{"password":1},{"user_role":"admin"},{"email":"1@yao.co"},{"active":"true"}]	tyro	2014-11-28 10:16:32	saveUser
+66	Admin\\EmailRecipientBundle\\Controller\\DefaultController::saveRecipient	\N	[{"email":"tyro.tan@concentrix.com"},{"active":"False"}]	tyro	2014-11-28 10:41:15	saveRecipient
+67	Admin\\EmailRecipientBundle\\Controller\\DefaultController::saveRecipient	\N	[{"email":"tyro.tan@yao.co"},{"active":"False"}]	tyro	2014-11-28 10:43:53	saveRecipient
+68	Admin\\EmailRecipientBundle\\Controller\\DefaultController::updateRecipient	\N	[{"oldEmail":"tyro.tan@yao.co"},{"id":"29"},{"active":"false"},{"email":"tyro.ta@sdot.co"}]	tyro	2014-11-28 10:51:21	updateRecipient
+69	Admin\\EmailRecipientBundle\\Controller\\DefaultController::updateRecipient	29	[{"oldEmail":"tyro.tan@yao.co"},{"id":"29"},{"active":"true"},{"email":"tyro.tan@concentrix.com"}]	tyro	2014-11-28 10:57:45	updateRecipient
+70	Admin\\EmailRecipientBundle\\Controller\\DefaultController::deleteRecipient	\N	[{"id":"29"}]	tyro	2014-11-28 10:58:44	deleteRecipient
+71	Admin\\EmailRecipientBundle\\Controller\\DefaultController::saveRecipient	\N	[{"email":"aw@sedrc.cp"},{"active":"true"}]	tyro	2014-11-28 11:01:28	saveRecipient
+72	Admin\\EmailRecipientBundle\\Controller\\DefaultController::deleteRecipient	30	[{"id":"30"}]	tyro	2014-11-28 11:01:32	deleteRecipient
+73	Admin\\EmailRecipientBundle\\Controller\\DefaultController::saveRecipient	\N	[{"email":"aw@saer.co"},{"active":"False"}]	tyro	2014-11-28 11:02:44	saveRecipient
+74	Admin\\EmailRecipientBundle\\Controller\\DefaultController::deleteRecipient	31	[{"id":"31"}]	tyro	2014-11-28 11:02:47	deleteRecipient
+75	Admin\\EmailRecipientBundle\\Controller\\DefaultController::saveRecipient	\N	[{"email":"yen@constant.tin"},{"active":"False"}]	tyro	2014-11-28 11:03:02	saveRecipient
+76	Admin\\EmailRecipientBundle\\Controller\\DefaultController::deleteRecipient	32	[{"id":"32"}]	tyro	2014-11-28 11:03:05	deleteRecipient
+77	Admin\\MaintenanceBundle\\Controller\\DefaultController::saveQuestion	\N	[{"cat_id":"158"},{"q_id":"false"},{"question_name":"This is a sample question2"},{"question_id":""},{"type":"comment"}]	tyro	2014-11-28 11:12:40	saveQuestion
+78	Admin\\MaintenanceBundle\\Controller\\DefaultController::saveQuestion	\N	[{"cat_id":"158"},{"q_id":"312"},{"question_name":"This is a sample question23"},{"question_id":""},{"type":"comment"}]	tyro	2014-11-28 11:18:51	saveQuestion
+79	Admin\\MaintenanceBundle\\Controller\\DefaultController::saveQuestion	\N	[{"cat_id":"158"},{"q_id":"312"},{"question_name":"This is a sample question23?"},{"question_id":""},{"type":"comment"}]	tyro	2014-11-28 11:19:01	saveQuestion
+80	Admin\\MaintenanceBundle\\Controller\\DefaultController::saveQuestion	312	[{"cat_id":"158"},{"q_id":"312"},{"question_name":"This is a sample question`"},{"question_id":""},{"type":"comment"}]	tyro	2014-11-28 11:22:50	0
+81	Admin\\MaintenanceBundle\\Controller\\DefaultController::saveQuestion	312	[{"cat_id":"158"},{"q_id":"312"},{"question_name":"This is a sample question'"},{"question_id":""},{"type":"comment"}]	tyro	2014-11-28 11:23:21	saveQuestion - edit
+82	Admin\\MaintenanceBundle\\Controller\\DefaultController::deleteQuestion	312	[{"id":"312"}]	tyro	2014-11-28 11:27:44	deleteQuestion
+83	Admin\\MaintenanceBundle\\Controller\\DefaultController::saveQuestion	\N	[{"cat_id":"158"},{"q_id":"false"},{"question_name":" him'"},{"question_id":""},{"type":"comment"}]	tyro	2014-11-28 11:49:04	saveQuestion
+84	Admin\\MaintenanceBundle\\Controller\\DefaultController::saveQuestion	\N	[{"cat_id":"158"},{"q_id":"false"},{"question_name":"we"},{"question_id":""},{"type":"rating"}]	tyro	2014-11-28 11:51:08	saveQuestion
+85	Admin\\UserManagementBundle\\Controller\\DefaultController::updateUser	137	[{"mode":"update"},{"oldUsername":"ha"},{"oldEmail":"1@yao.co"},{"username":"john_doe"},{"password":0},{"user_role":"admin"},{"email":"tester@test.com"},{"active":"false"}]	tyro	2014-11-28 14:09:36	updateUser
+86	Admin\\EmailRecipientBundle\\Controller\\DefaultController::saveRecipient	\N	[{"email":"apostrophe'@email.com"},{"active":"true"}]	tyro	2014-11-28 14:25:46	saveRecipient
+87	Admin\\EmailRecipientBundle\\Controller\\DefaultController::updateRecipient	33	[{"oldEmail":"apostrophe'@email.com"},{"id":"33"},{"active":"true"},{"email":"apostrophe'@email.com"}]	tyro	2014-11-28 14:29:07	updateRecipient
+88	Admin\\EmailRecipientBundle\\Controller\\DefaultController::updateRecipient	33	[{"oldEmail":"apostrophe'@email.com"},{"id":"33"},{"active":"false"},{"email":"apostrophe'@email.com"}]	tyro	2014-11-28 14:29:13	updateRecipient
+89	Admin\\EmailRecipientBundle\\Controller\\DefaultController::updateRecipient	33	[{"oldEmail":"apostrophe'@email.com"},{"id":"33"},{"active":"false"},{"email":"tyro.tan@concentrix.com"}]	tyro	2014-11-28 15:30:19	updateRecipient
+90	Admin\\EmailRecipientBundle\\Controller\\DefaultController::updateRecipient	33	[{"oldEmail":"apostrophe'@email.com"},{"id":"33"},{"active":"true"},{"email":"apostrophe'@email.com"}]	tyro	2014-11-28 15:30:25	updateRecipient
+91	Admin\\EmailRecipientBundle\\Controller\\DefaultController::updateRecipient	33	[{"oldEmail":"apostrophe'@email.com"},{"id":"33"},{"active":"false"},{"email":"tyro.tan@concentrix.com"}]	tyro	2014-11-28 15:30:35	updateRecipient
+92	Admin\\UserManagementBundle\\Controller\\DefaultController::updateUser	125	[{"mode":"update"},{"oldUsername":"aa"},{"oldEmail":"w@ser.co"},{"username":"aaa"},{"password":0},{"user_role":"report"},{"email":"w@ser.co"},{"active":"true"}]	tyro	2014-11-28 15:32:25	updateUser
+93	Admin\\UserManagementBundle\\Controller\\DefaultController::updateUser	125	[{"mode":"update"},{"oldUsername":"aaa"},{"oldEmail":"w@ser.co"},{"username":"aaaa"},{"password":0},{"user_role":"report"},{"email":"w@ser.co"},{"active":"true"}]	tyro	2014-11-28 15:32:29	updateUser
+94	Admin\\EmailRecipientBundle\\Controller\\DefaultController::updateRecipient	33	[{"oldEmail":"tyro.tan@concentrix.com"},{"id":"33"},{"active":"false"},{"email":"tyro.tan@concentrix.coma"}]	tyro	2014-11-28 15:32:42	updateRecipient
+95	Admin\\EmailRecipientBundle\\Controller\\DefaultController::updateRecipient	33	[{"oldEmail":"tyro.tan@concentrix.com"},{"id":"33"},{"active":"true"},{"email":"tyro.tan@concentrix.com"}]	tyro	2014-11-28 15:33:24	updateRecipient
+96	Admin\\EmailRecipientBundle\\Controller\\DefaultController::updateRecipient	33	[{"oldEmail":"tyro.tan@concentrix.com"},{"id":"33"},{"active":"true"},{"email":"tyro.tan@concentrix.coma"}]	tyro	2014-11-28 15:35:11	updateRecipient
+97	Admin\\EmailRecipientBundle\\Controller\\DefaultController::updateRecipient	33	[{"oldEmail":"tyro.tan@concentrix.coma"},{"id":"33"},{"active":"true"},{"email":"tyro.tan@concentrix.com"}]	tyro	2014-11-28 15:38:29	updateRecipient
+98	Admin\\EmailRecipientBundle\\Controller\\DefaultController::updateRecipient	33	[{"oldEmail":"tyro.tan@concentrix.com"},{"id":"33"},{"active":"true"},{"email":"tyro.tan@concentrix.coma"}]	tyro	2014-11-28 15:39:18	updateRecipient
+99	Admin\\EmailRecipientBundle\\Controller\\DefaultController::updateRecipient	33	[{"oldEmail":"tyro.tan@concentrix.com"},{"id":"33"},{"active":"true"},{"email":"tyro.tan@concentrix.coms"}]	tyro	2014-11-28 15:39:35	updateRecipient
+100	Admin\\EmailRecipientBundle\\Controller\\DefaultController::updateRecipient	33	[{"oldEmail":"tyro.tan@concentrix.coms"},{"id":"33"},{"active":"true"},{"email":"tyro.tan@concentrix.com"}]	tyro	2014-11-28 15:52:17	updateRecipient
+101	Admin\\EmailRecipientBundle\\Controller\\DefaultController::updateRecipient	33	[{"oldEmail":"tyro.tan@concentrix.coms"},{"id":"33"},{"active":"true"},{"email":"tyro.tan@concentrix.coms"}]	tyro	2014-11-28 15:52:52	updateRecipient
+102	Admin\\EmailRecipientBundle\\Controller\\DefaultController::updateRecipient	33	[{"oldEmail":"tyro.tan@concentrix.coms"},{"id":"33"},{"active":"false"},{"email":"tyro.tan@concentrix.coms"}]	tyro	2014-11-28 15:53:07	updateRecipient
+103	Admin\\EmailRecipientBundle\\Controller\\DefaultController::updateRecipient	33	[{"oldEmail":"tyro.tan@concentrix.coms"},{"id":"33"},{"active":"true"},{"email":"tyro.tan@concentrix.com"}]	tyro	2014-11-28 15:53:20	updateRecipient
+104	Admin\\EmailRecipientBundle\\Controller\\DefaultController::deleteRecipient	33	[{"id":"33"}]	tyro	2014-11-28 15:53:50	deleteRecipient
+105	Admin\\EmailRecipientBundle\\Controller\\DefaultController::saveRecipient	\N	[{"email":"tyro.tan@concentrix.com"},{"active":"False"}]	tyro	2014-11-28 15:55:21	saveRecipient
+106	Admin\\EmailRecipientBundle\\Controller\\DefaultController::updateRecipient	34	[{"oldEmail":"tyro.tan@concentrix.com"},{"id":"34"},{"active":"true"},{"email":"tyro.tan@concentrix.com"}]	tyro	2014-11-28 15:55:26	updateRecipient
+107	Admin\\EmailRecipientBundle\\Controller\\DefaultController::deleteRecipient	4	[{"id":"4"}]	tyro	2014-11-28 15:57:53	deleteRecipient
+108	Admin\\EmailRecipientBundle\\Controller\\DefaultController::saveRecipient	\N	[{"email":"jan.simoy@concentrix.com"},{"active":"False"}]	tyro	2014-11-28 15:58:04	saveRecipient
+109	Admin\\EmailRecipientBundle\\Controller\\DefaultController::updateRecipient	34	[{"oldEmail":"tyro.tan@concentrix.com"},{"id":"34"},{"active":"false"},{"email":"tyro.tan@concentrix.com"}]	tyro	2014-11-28 15:58:12	updateRecipient
+110	Admin\\EmailRecipientBundle\\Controller\\DefaultController::updateRecipient	34	[{"oldEmail":"tyro.tan@concentrix.com"},{"id":"34"},{"active":"true"},{"email":"tyro.tan@concentrix.com"}]	tyro	2014-11-28 15:58:27	updateRecipient
+111	Admin\\UserManagementBundle\\Controller\\DefaultController::updateUser	90	[{"mode":"update"},{"oldUsername":"tyro1"},{"oldEmail":"1tyro.tan@concentrix.com"},{"username":"tyro1"},{"password":0},{"user_role":"admin"},{"email":"this_is_a_very_very_very_long_emaillllllllllllllllll@concentrix.com"},{"active":"true"}]	Administrator	2014-11-28 16:59:25	updateUser
+112	Admin\\UserManagementBundle\\Controller\\DefaultController::saveUser	138	[{"username":"test2"},{"password":4},{"user_role":"admin"},{"email":"test1@test.com"},{"active":"true"}]	Administrator	2014-12-01 10:29:41	saveUser
+113	Admin\\UserManagementBundle\\Controller\\DefaultController::deleteUser	91	[{"username":"tyro2"}]	Administrator	2014-12-01 10:35:45	deleteUser
+114	Admin\\UserManagementBundle\\Controller\\DefaultController::deleteUser	113	[{"username":"username"}]	Administrator	2014-12-01 10:35:49	deleteUser
+115	Admin\\UserManagementBundle\\Controller\\DefaultController::deleteUser	119	[{"username":"test1"}]	Administrator	2014-12-01 10:35:52	deleteUser
+116	Admin\\UserManagementBundle\\Controller\\DefaultController::deleteUser	116	[{"username":"username2"}]	Administrator	2014-12-01 10:35:54	deleteUser
+117	Admin\\UserManagementBundle\\Controller\\DefaultController::deleteUser	110	[{"username":"test"}]	Administrator	2014-12-01 10:35:56	deleteUser
+118	Admin\\UserManagementBundle\\Controller\\DefaultController::deleteUser	125	[{"username":"aaaa"}]	Administrator	2014-12-01 10:36:00	deleteUser
+119	Admin\\UserManagementBundle\\Controller\\DefaultController::deleteUser	90	[{"username":"tyro1"}]	Administrator	2014-12-01 10:36:02	deleteUser
+120	Admin\\UserManagementBundle\\Controller\\DefaultController::deleteUser	140	[{"username":"test2"}]	Administrator	2014-12-01 10:36:04	deleteUser
+121	Admin\\UserManagementBundle\\Controller\\DefaultController::updateUser	88	[{"mode":"update"},{"oldUsername":"reporter"},{"oldEmail":"tan_tyro@yahoo.com"},{"username":"reporter"},{"password":0},{"user_role":"report"},{"email":"reporter@yahoo.com"},{"active":"true"}]	Administrator	2014-12-01 10:36:23	updateUser
+122	Admin\\UserManagementBundle\\Controller\\DefaultController::saveUser	141	[{"username":"julie.celi"},{"password":11},{"user_role":"admin"},{"email":"julie.celi@concentrix.com"},{"active":"true"}]	Administrator	2014-12-01 10:39:16	saveUser
+123	Admin\\UserManagementBundle\\Controller\\DefaultController::updateUser	137	[{"mode":"update"},{"oldUsername":"john_doe"},{"oldEmail":"tester@test.com"},{"username":"john_doe"},{"password":0},{"user_role":"admin"},{"email":"tester@test.com"},{"active":"false"}]	julie.celi	2014-12-01 11:31:33	updateUser
+124	Admin\\EmailRecipientBundle\\Controller\\DefaultController::saveRecipient	\N	[{"email":"reymar.guerrero@concentrix.com"},{"active":"False"}]	Administrator	2014-12-01 15:03:43	saveRecipient
+125	Admin\\EmailRecipientBundle\\Controller\\DefaultController::updateRecipient	36	[{"oldEmail":"reymar.guerrero@concentrix.com"},{"id":"36"},{"active":"true"},{"email":"reymar.guerrero@concentrix.com"}]	Administrator	2014-12-01 15:03:50	updateRecipient
+126	Admin\\EmailRecipientBundle\\Controller\\DefaultController::updateRecipient	36	[{"oldEmail":"reymar.guerrero@concentrix.com"},{"id":"36"},{"active":"false"},{"email":"reymar.guerrero@concentrix.com"}]	tyro	2014-12-01 15:09:29	updateRecipient
+127	Admin\\EmailRecipientBundle\\Controller\\DefaultController::updateRecipient	34	[{"oldEmail":"tyro.tan@concentrix.com"},{"id":"34"},{"active":"true"},{"email":"erwin.baldoman@concentrix.com"}]	tyro.tan	2014-12-02 08:11:55	updateRecipient
+128	Admin\\EmailRecipientBundle\\Controller\\DefaultController::updateRecipient	34	[{"oldEmail":"erwin.baldoman@concentrix.com"},{"id":"34"},{"active":"true"},{"email":"tyro.tan@concentrix.com"}]	Administrator	2014-12-02 08:18:36	updateRecipient
+129	Admin\\EmailRecipientBundle\\Controller\\DefaultController::saveRecipient	\N	[{"email":"erwin.baldoman@concentrix.com"},{"active":"true"}]	Administrator	2014-12-02 08:26:24	saveRecipient
+130	Admin\\UserManagementBundle\\Controller\\DefaultController::deleteUser	137	[{"username":"john_doe"}]	julie.celi	2014-12-02 09:36:56	deleteUser
+131	Admin\\MaintenanceBundle\\Controller\\DefaultController::saveQuestion	\N	[{"cat_id":"125"},{"q_id":"false"},{"question_name":"Any additonal feedback?"},{"question_id":""},{"type":"comment"}]	julie.celi	2014-12-02 09:40:43	saveQuestion
+132	Admin\\MaintenanceBundle\\Controller\\DefaultController::saveQuestion	315	[{"cat_id":"125"},{"q_id":"315"},{"question_name":"1.4. Any additonal feedback?"},{"question_id":""},{"type":"comment"}]	julie.celi	2014-12-02 09:41:04	saveQuestion - edit
+133	Admin\\UserManagementBundle\\Controller\\DefaultController::saveUser	144	[{"username":"e"},{"password":1},{"user_role":"admin"},{"email":"ser@ser.com"},{"active":"true"}]	Anonymous	2014-12-02 12:16:39	saveUser
+134	Admin\\UserManagementBundle\\Controller\\DefaultController::deleteUser	146	[{"username":"e"}]	Anonymous	2014-12-02 12:16:46	deleteUser
+135	Admin\\UserManagementBundle\\Controller\\DefaultController::saveUser	147	[{"username":"e"},{"password":1},{"user_role":"admin"},{"email":"e@saer.co"},{"active":"true"}]	Anonymous	2014-12-02 12:19:42	saveUser
+136	Admin\\UserManagementBundle\\Controller\\DefaultController::deleteUser	149	[{"username":"e"}]	Anonymous	2014-12-02 12:59:42	deleteUser
+137	Admin\\EmailRecipientBundle\\Controller\\DefaultController::saveRecipient	\N	[{"email":"orvin.gulleban@concentrix.com"},{"active":"False"}]	Administrator	2014-12-03 09:19:29	saveRecipient
+138	Admin\\EmailRecipientBundle\\Controller\\DefaultController::updateRecipient	38	[{"oldEmail":"orvin.gulleban@concentrix.com"},{"id":"38"},{"active":"true"},{"email":"orvin.gulleban@concentrix.com"}]	Administrator	2014-12-03 09:19:39	updateRecipient
+139	Admin\\EmailRecipientBundle\\Controller\\DefaultController::deleteRecipient	38	[{"id":"38"}]	Administrator	2014-12-03 09:19:48	deleteRecipient
+\.
+
+
+--
+-- TOC entry 1570 (class 0 OID 121892419)
+-- Dependencies: 1199
+-- Data for Name: user_account; Type: TABLE DATA; Schema: public; Owner: webuser
+-- File: 1570.dat
+--
+
+COPY user_account (id, username, user_role, active, email, "password") FROM stdin;
+87	Administrator	admin	t	jan.simoy@concentrix.com	$2a$15$FEm/bcVRQ/lGcTglZ4d1W.qDg4ufupdox6rFBgY7mD8036lNUA.lm
+89	tyro	admin	t	tyro.tan@concentrix.com	$2a$15$0zEiiTg6bx8h73qcnU5.juze2USTBo2eaRkHOKbNYQMsxV1pVcN62
+88	reporter	report	t	reporter@yahoo.com	$2a$15$j.q95zx37cqNgEXLQj/uEOL1Yl79dGlKdcTZ5noCd1PR8NJyQN9e.
+143	julie.celi	admin	t	julie.celi@concentrix.com	$2a$15$l72qaIktFZFOPddtZrt7beDDwWzAvrzHTko8Xy2W86Y/QTykNG0.G
+\.
+
+
+--
+-- TOC entry 1548 (class 2606 OID 121892431)
+-- Dependencies: 1201 1201
+-- Name: category_pkey; Type: CONSTRAINT; Schema: public; Owner: webuser; Tablespace: 
+--
+
+ALTER TABLE ONLY category
+    ADD CONSTRAINT category_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 1556 (class 2606 OID 122239531)
+-- Dependencies: 1209 1209
+-- Name: concessionaire_description_key; Type: CONSTRAINT; Schema: public; Owner: webuser; Tablespace: 
+--
+
+ALTER TABLE ONLY concessionaire
+    ADD CONSTRAINT concessionaire_description_key UNIQUE (description);
+
+
+--
+-- TOC entry 1558 (class 2606 OID 122239491)
+-- Dependencies: 1209 1209
+-- Name: concessionaire_pkey; Type: CONSTRAINT; Schema: public; Owner: webuser; Tablespace: 
+--
+
+ALTER TABLE ONLY concessionaire
+    ADD CONSTRAINT concessionaire_pkey PRIMARY KEY (idconcessionaire);
+
+
+--
+-- TOC entry 1560 (class 2606 OID 122239546)
+-- Dependencies: 1211 1211
+-- Name: email_recipients_decription_key; Type: CONSTRAINT; Schema: public; Owner: webuser; Tablespace: 
+--
+
+ALTER TABLE ONLY email_recipient
+    ADD CONSTRAINT email_recipients_decription_key UNIQUE (email);
+
+
+--
+-- TOC entry 1562 (class 2606 OID 122239544)
+-- Dependencies: 1211 1211
+-- Name: email_recipients_pkey; Type: CONSTRAINT; Schema: public; Owner: webuser; Tablespace: 
+--
+
+ALTER TABLE ONLY email_recipient
+    ADD CONSTRAINT email_recipients_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 1552 (class 2606 OID 121892460)
+-- Dependencies: 1205 1205
+-- Name: employee_answers_pkey; Type: CONSTRAINT; Schema: public; Owner: webuser; Tablespace: 
+--
+
+ALTER TABLE ONLY employee_answers
+    ADD CONSTRAINT employee_answers_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 1554 (class 2606 OID 121892477)
+-- Dependencies: 1207 1207
+-- Name: employee_logs_pkey; Type: CONSTRAINT; Schema: public; Owner: webuser; Tablespace: 
+--
+
+ALTER TABLE ONLY employee_logs
+    ADD CONSTRAINT employee_logs_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 1550 (class 2606 OID 121892443)
+-- Dependencies: 1203 1203
+-- Name: questions_pkey; Type: CONSTRAINT; Schema: public; Owner: webuser; Tablespace: 
+--
+
+ALTER TABLE ONLY questions
+    ADD CONSTRAINT questions_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 1564 (class 2606 OID 122239598)
+-- Dependencies: 1213 1213
+-- Name: sys_user_action_logs_pkey; Type: CONSTRAINT; Schema: public; Owner: webuser; Tablespace: 
+--
+
+ALTER TABLE ONLY sys_user_action_logs
+    ADD CONSTRAINT sys_user_action_logs_pkey PRIMARY KEY (idsys_user_action_logs);
+
+
+--
+-- TOC entry 1544 (class 2606 OID 122239533)
+-- Dependencies: 1199 1199
+-- Name: user_account_email_key; Type: CONSTRAINT; Schema: public; Owner: webuser; Tablespace: 
+--
+
+ALTER TABLE ONLY user_account
+    ADD CONSTRAINT user_account_email_key UNIQUE (email);
+
+
+--
+-- TOC entry 1546 (class 2606 OID 121892424)
+-- Dependencies: 1199 1199
+-- Name: user_account_pkey; Type: CONSTRAINT; Schema: public; Owner: webuser; Tablespace: 
+--
+
+ALTER TABLE ONLY user_account
+    ADD CONSTRAINT user_account_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 1565 (class 2606 OID 121892432)
+-- Dependencies: 1201 1199 1545
+-- Name: category_creator_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: webuser
+--
+
+ALTER TABLE ONLY category
+    ADD CONSTRAINT category_creator_id_fkey FOREIGN KEY (creator_id) REFERENCES user_account(id);
+
+
+--
+-- TOC entry 1568 (class 2606 OID 121892466)
+-- Dependencies: 1205 1199 1545
+-- Name: employee_answers_creator_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: webuser
+--
+
+ALTER TABLE ONLY employee_answers
+    ADD CONSTRAINT employee_answers_creator_id_fkey FOREIGN KEY (creator_id) REFERENCES user_account(id);
+
+
+--
+-- TOC entry 1569 (class 2606 OID 121892854)
+-- Dependencies: 1205 1203 1549
+-- Name: employee_answers_qid_fkey; Type: FK CONSTRAINT; Schema: public; Owner: webuser
+--
+
+ALTER TABLE ONLY employee_answers
+    ADD CONSTRAINT employee_answers_qid_fkey FOREIGN KEY (q_id) REFERENCES questions(id) ON DELETE CASCADE;
+
+
+--
+-- TOC entry 1566 (class 2606 OID 121892444)
+-- Dependencies: 1203 1201 1547
+-- Name: questions_c_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: webuser
+--
+
+ALTER TABLE ONLY questions
+    ADD CONSTRAINT questions_c_id_fkey FOREIGN KEY (c_id) REFERENCES category(id);
+
+
+--
+-- TOC entry 1567 (class 2606 OID 121892449)
+-- Dependencies: 1203 1199 1545
+-- Name: questions_creator_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: webuser
+--
+
+ALTER TABLE ONLY questions
+    ADD CONSTRAINT questions_creator_id_fkey FOREIGN KEY (creator_id) REFERENCES user_account(id);
+
+
+--
+-- TOC entry 1581 (class 0 OID 0)
+-- Dependencies: 4
+-- Name: public; Type: ACL; Schema: -; Owner: postgres
+--
+
+REVOKE ALL ON SCHEMA public FROM PUBLIC;
+REVOKE ALL ON SCHEMA public FROM postgres;
+GRANT ALL ON SCHEMA public TO postgres;
+GRANT ALL ON SCHEMA public TO PUBLIC;
+
+
+-- Completed on 2015-04-02 15:03:19 PHT
+
+--
+-- PostgreSQL database dump complete
+--
+

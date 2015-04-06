@@ -127,7 +127,7 @@ class DefaultController extends Controller
         
         foreach ($data as $key => $category)
         {      
-            $sql = 'SELECT description, id FROM questions WHERE c_id ='.$category['id'];
+            $sql = 'SELECT description, id FROM questions WHERE c_id ='.$category['id'].' ORDER BY id ASC';
             $stmt = $em->prepare($sql);
             $stmt->execute();
             $questions = $stmt->fetchAll();
@@ -147,7 +147,6 @@ class DefaultController extends Controller
            $this->report['headers'][$category['category_name']]['count'] = count($this->report['headers'][$category['category_name']]['datasub']);
         }
         
-    
         unset($sql);
         
         /*$sql = "SELECT username, actionstamp FROM employee_answers 
@@ -328,6 +327,169 @@ class DefaultController extends Controller
         $stmt->execute();
         $categories = $stmt->fetchAll();
         
+        //
+         //-- Prepares additional tabs with separated questions
+        //-- Get the question with separated type
+        $sql = "
+          SELECT DISTINCT id FROM questions WHERE c_id IN (SELECT id FROM category WHERE idconcessionaire IN('$selects_id')) AND grouping='separated'
+        ";
+        
+        $stmt = $em->prepare($sql);
+        $stmt->execute();
+        $result = $stmt->fetch();
+        $separated_id = ($result) ? ($result['id']) : "";
+        if($separated_id){
+            
+            $separated_arr = array();
+            $o_repo = $this->getDoctrine()->getRepository('FeedbackSurveyFormBundle:Options');
+            $o = $o_repo->findBy(array('qId' => $separated_id));
+            $report_summary['extra_header'] = array();
+
+            foreach ($o as $o_key => $o_value){
+                // $report_summary['extra_header'][$o_value->getOptionDesc()][] = array();
+                $separated_arr[] = $o_value->getOptionDesc();
+            }
+
+            //-- loads the categories
+            foreach ($categories as $ck => $cv){
+                foreach($separated_arr as $sk => $sv){
+                    //-- get all questions 
+                    $sql = 'SELECT description, id, type FROM questions WHERE c_id ='.$cv['id'];
+                    $stmt = $em->prepare($sql);
+                    $stmt->execute();
+                    $questions = $stmt->fetchAll();
+
+                    //--check if category has grouped_id
+                    //-- Get the question with grouped type
+                    $sql = "
+                      SELECT DISTINCT id FROM questions WHERE c_id IN ('{$cv['id']}') AND grouping='grouped'
+                    ";
+                    $stmt = $em->prepare($sql);
+                    $stmt->execute();
+                    $result = $stmt->fetch();
+                    $grouped_id = ($result) ? ($result['id']) : "";
+
+                    //-- loads the questions per category
+                    foreach($questions as $qk => $qv){
+                        foreach($separated_arr as $sk => $sv){
+                            if($grouped_id){
+                                $o = $o_repo->findBy(array('qId' => $grouped_id));
+                                foreach ($o as $o_key => $o_value){
+                                    $group_arr[$o_value->getOptionDesc()] = array();
+                                    $report_summary['extra_header'][$sv][$cv['category_name']][0][$o_value->getOptionDesc()] = array();
+                                    foreach ($questions as $qk=>$question)
+                                        $report_summary['extra_header'][$sv][$cv['category_name']][0][$o_value->getOptionDesc()][$question['description']] = array('1' => 0, '2' => 0, '3' => 0, '4' => 0);
+                                }
+                            }
+                            else
+                                $report_summary['extra_header'][$sv][$cv['category_name']][$qv['description']] = array('1' => 0, '2' => 0, '3' => 0, '4' => 0);
+                        }
+                    }
+                    
+                    //-- loads questions per category and by group
+
+
+                    $sql = "SELECT distinct actionstamp FROM employee_answers WHERE q_id=$separated_id AND actionstamp::DATE between '$date_from' AND '$date_to'";
+                    $stmt = $em->prepare($sql);
+                    $stmt->execute();
+                    $actionstamps = $stmt->fetchAll();
+
+                    $a_repo = $this->getDoctrine()->getRepository('FeedbackSurveyFormBundle:EmployeeAnswers');
+                    foreach ($actionstamps as $a_key => $a_value) {
+                        $stamp = $a_value['actionstamp'];
+                        $sql = "SELECT * FROM employee_answers WHERE actionstamp='$stamp'";
+                        $stmt = $em->prepare($sql);
+                        $stmt->execute();
+                        $a = $stmt->fetchAll();
+                        $temp = array();
+                        
+                        //-- computation logic if the survey has questioned tagged as grouped
+                        if($grouped_id){
+                            $s_index = "";
+                            $sg_index = "";
+                            foreach ($a as $k => $v) {
+                              if($v['q_id'] == $separated_id)
+                                $s_index = $v['value'];
+                              if($v['q_id'] == $grouped_id)
+                                $sg_index = $v['value'];
+                              $temp[] = $v;
+                            }
+                            foreach($questions as $qq => $qs){
+                                if($qs['type'] != 'rating')
+                                    continue;
+                                $q_idc = $qs['id'];
+                                foreach ($temp as $tk => $tv) {
+                                    
+                                    if($q_idc == $tv['q_id']){
+                                        switch ($tv['value']) {
+                                            case 1:
+                                                $report_summary['extra_header'][$s_index][$cv['category_name']][0][$sg_index][$qs['description']][1] += 1;
+                                                break;
+                                            case 2:
+                                                $report_summary['extra_header'][$s_index][$cv['category_name']][0][$sg_index][$qs['description']][2] += 1;
+                                                break;
+                                            case 3:
+                                                
+                                                $report_summary['extra_header'][$s_index][$cv['category_name']][0][$sg_index][$qs['description']][3] += 1;
+                                                break;
+                                            case 4:
+                                                $report_summary['extra_header'][$s_index][$cv['category_name']][0][$sg_index][$qs['description']][4] += 1;
+                                                break;
+                                            default:
+                                                # code...
+                                                break;
+                                        }
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                            continue;
+                        }
+
+                        //-- computation logic if the survey has no question tagged as grouped
+                        $s_index = "";
+                        foreach ($a as $k => $v) {
+                          if($v['q_id'] == $separated_id){
+                            $s_index = $v['value'];
+                          }
+                          $temp[] = $v;
+                        }
+                        foreach($questions as $qq => $qs){
+                            if($qs['type'] != 'rating')
+                                continue;
+                            $q_idc = $qs['id'];
+                            foreach ($temp as $tk => $tv) {
+                                
+                                if($q_idc == $tv['q_id']){
+                                    switch ($tv['value']) {
+                                        case 1:
+                                            $report_summary['extra_header'][$s_index][$cv['category_name']][$qs['description']][1] += 1;
+                                            break;
+                                        case 2:
+                                            $report_summary['extra_header'][$s_index][$cv['category_name']][$qs['description']][2] += 1;
+                                            break;
+                                        case 3:
+                                            
+                                            $report_summary['extra_header'][$s_index][$cv['category_name']][$qs['description']][3] += 1;
+                                            break;
+                                        case 4:
+                                            $report_summary['extra_header'][$s_index][$cv['category_name']][$qs['description']][4] += 1;
+                                            break;
+                                        default:
+                                            # code...
+                                            break;
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+         $grouped_id = "";
+        //-- generates summary report tab
         foreach ($categories as $key => $category)
         {
             $sql = 'SELECT description, id, type FROM questions WHERE c_id ='.$category['id'];
@@ -344,15 +506,7 @@ class DefaultController extends Controller
             $result = $stmt->fetch();
             $grouped_id = ($result) ? ($result['id']) : "";
 
-            //-- Get the question with separated type
-            $sql = "
-              SELECT DISTINCT id FROM questions WHERE c_id IN (SELECT id FROM category WHERE idconcessionaire IN('$selects_id')) AND grouping='separated'
-            ";
             
-            $stmt = $em->prepare($sql);
-            $stmt->execute();
-            $result = $stmt->fetch();
-            $separated_id = ($result) ? ($result['id']) : "";
 
             
             if(count($questions) == 0)
@@ -362,122 +516,14 @@ class DefaultController extends Controller
             $category['category_name'] = $category['category_name']; 
             $report_summary['sub_headers'][$category['category_name']] = array();
             
-            //-- Prepares additional tabs with separated questions
-            if($separated_id){
-                
-                $separated_arr = array();
-                $o_repo = $this->getDoctrine()->getRepository('FeedbackSurveyFormBundle:Options');
-                $o = $o_repo->findBy(array('qId' => $separated_id));
-                $report_summary['extra_header'] = array();
-
-                foreach ($o as $o_key => $o_value){
-                    // $report_summary['extra_header'][$o_value->getOptionDesc()][] = array();
-                    $separated_arr[] = $o_value->getOptionDesc();
-                }
-
-                //-- loads the categories
-                foreach ($categories as $ck => $cv){
-                    foreach($separated_arr as $sk => $sv){
-                        $report_summary['extra_header'][$sv][$cv['category_name']] = array();
-                    }
-                }
-
-                
-                // $report_summary['extra_header'][$o_value->getOptionDesc()][$category['category_name']] = array();
-                $sql = "SELECT distinct actionstamp FROM employee_answers WHERE q_id=$separated_id AND actionstamp::DATE between '$date_from' AND '$date_to'";
-                $stmt = $em->prepare($sql);
-                $stmt->execute();
-                $actionstamps = $stmt->fetchAll();
-
-                $a_repo = $this->getDoctrine()->getRepository('FeedbackSurveyFormBundle:EmployeeAnswers');
-                foreach ($actionstamps as $a_key => $a_value) {
-                    $stamp = $a_value['actionstamp'];
-                    $sql = "SELECT * FROM employee_answers WHERE actionstamp='$stamp'";
-                    $stmt = $em->prepare($sql);
-                    $stmt->execute();
-                    $a = $stmt->fetchAll();
-                    $temp = array();
-
-                    //-- Check all answers per entry
-                    $s_index = "";
-                    foreach ($a as $k => $v) {
-                      if($v['q_id'] == $separated_id){
-                        $s_index = $v['value'];
-                      }
-                      $temp[] = $v;
-                    }
-
-                }
-
-                //-- loads the questions per category
-                foreach($questions as $qk => $qv){
-                    foreach($separated_arr as $sk => $sv){
-                        $report_summary['extra_header'][$sv][$cv['category_name']][$qv['description']] = array('1' => 0, '2' => 0, '3' => 0, '4' => 0);
-                    }
-                }
-
-
-                
-                //-- Rating identifier and counter
-                foreach($questions as $qq => $qs){
-                    if($qs['type'] != 'rating')
-                        continue;
-                    $q_idc = $qs['id'];
-                    // foreach ($temp as $tk => $tv) {
-                    //     if($q_idc == $tv['q_id']){
-                    //         switch ($tv['value']) {
-                    //             case 1:
-                    //                 $report_summary['sub_headers'][$category['category_name']][0][$g_index][$qs['description']][$qq + 1] += 1;
-                    //                 break;
-                    //             case 2:
-                    //                 $report_summary['sub_headers'][$category['category_name']][0][$g_index][$qs['description']][$qq + 1] += 1;
-                    //                 break;
-                    //             case 3:
-                                    
-                    //                 $report_summary['sub_headers'][$category['category_name']][0][$g_index][$qs['description']][3] += 1;
-                    //                 break;
-                    //             case 4:
-                    //                 $report_summary['sub_headers'][$category['category_name']][0][$g_index][$qs['description']][4] += 1;
-                    //                 break;
-                    //             default:
-                    //                 # code...
-                    //                 break;
-                    //         }
-                    //         break;
-                    //     }
-                    // }
-                }
-
-                // //-- Uses the original logic with no 
-                // foreach($questions as $qk=>$question)
-                // {
-                  
-                //    for($j=1;$j<=4;$j++)
-                //    {
-                //        //this old line below doesnt adhere to the input date filter so it re turns everything since the beginning of time
-                //        //$sql = "SELECT count(value) FROM employee_answers WHERE q_id IN (".$question['id'].") AND value IN(".$j.")";
-                //        $sql = "SELECT count(value) FROM employee_answers WHERE q_id IN (".$question['id'].")
-                //              AND value IN('".$j."')
-                //              AND actionstamp::DATE  >= '$date_from'
-                //              AND actionstamp::DATE  <= '$date_to'
-                //             ";
-                        
-                //        $stmt = $em->prepare($sql);
-                //        $stmt->execute();
-                //        $answer_count = $stmt->fetch();
-                       
-                //        $report_summary['sub_headers'][$category['category_name']][$question['description']][] = $answer_count['count'];            
-                //    }
-                // }
-
-            }
+           
             //-- On Basic Summary Report, manipulates data with group questions
             if($grouped_id){
               $group_arr = "";
               $o_repo = $this->getDoctrine()->getRepository('FeedbackSurveyFormBundle:Options');
               $o = $o_repo->findBy(array('qId' => $grouped_id));
               foreach ($o as $o_key => $o_value){
-              	$group_arr[$o_value->getOptionDesc()] = array();
+                $group_arr[$o_value->getOptionDesc()] = array();
                 $report_summary['sub_headers'][$category['category_name']][0][$o_value->getOptionDesc()] = array();
                 foreach ($questions as $qk=>$question) {
                     $report_summary['sub_headers'][$category['category_name']][0][$o_value->getOptionDesc()][$question['description']] = array('1' => 0, '2' => 0, '3' => 0, '4' => 0);
@@ -520,10 +566,10 @@ class DefaultController extends Controller
                         if($q_idc == $tv['q_id']){
                             switch ($tv['value']) {
                                 case 1:
-                                    $report_summary['sub_headers'][$category['category_name']][0][$g_index][$qs['description']][$qq + 1] += 1;
+                                    $report_summary['sub_headers'][$category['category_name']][0][$g_index][$qs['description']][1] += 1;
                                     break;
                                 case 2:
-                                    $report_summary['sub_headers'][$category['category_name']][0][$g_index][$qs['description']][$qq + 1] += 1;
+                                    $report_summary['sub_headers'][$category['category_name']][0][$g_index][$qs['description']][2] += 1;
                                     break;
                                 case 3:
                                     
@@ -745,6 +791,7 @@ class DefaultController extends Controller
                         );
                         
         $rowStartHeader = 1;
+        
         foreach($this->report['headers'] as $headerName => $data)
         {
             $start = key($data['datasub']); # 1st key
@@ -1068,6 +1115,8 @@ class DefaultController extends Controller
 
               //-- Generates the standard report
               foreach ($value as $sq => $sqk) {
+                    
+                    
                     $row_start_data++;
                     $phpExcelObject->getActiveSheet()->mergeCells('A'.$row_start_data.':B'.$row_start_data)->getStyle('A2:B2')->getFill()
                              ->applyFromArray(array(
@@ -1096,8 +1145,50 @@ class DefaultController extends Controller
                     $phpExcelObject->getActiveSheet()->setCellValueByColumnAndRow($col_start_data, $row_start_data, $sq);
                     $col_start_data = 2;
 
+                    
                     //-- Generates  the questions and results
-                    foreach ($g_val as $gk => $gv) {
+                    $col_start_data = 0;
+                    foreach ($sqk as $gk => $gv) {
+                        if($gk === 0){
+                          foreach ($gv as $g_area => $g_val) {
+                            // echo '<pre>';
+                            // print_r($gv);
+                            // die();
+                            $row_start_data++;
+                            $phpExcelObject->getActiveSheet()->setCellValue("A$row_start_data", "$g_area");
+                            $phpExcelObject->getActiveSheet()
+                                           ->mergeCells("A$row_start_data:F$row_start_data")
+                                           ->getStyle("A$row_start_data:F$row_start_data")     
+                                           ->getFill()
+                                           ->applyFromArray(array(
+                                            'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+                                            'color' => array('rgb' => '92D050')
+                                        )
+                              );
+                            $phpExcelObject->getActiveSheet()->getStyle('A'.$row_start_data.':H'.$row_start_data)->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setWrapText(true);
+                            
+                            foreach ($g_val as $gk => $gv) {
+                                $row_start_data++;
+                                $phpExcelObject->getActiveSheet()->mergeCells('A'.$row_start_data.':B'.$row_start_data)->getStyle('A2:B2')->getFill()
+                                         ->applyFromArray(array(
+                                        'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+                                        'color' => array('rgb' => '0066CC')
+                                         )
+                                        );  
+                                $phpExcelObject->getActiveSheet()->setCellValueByColumnAndRow($col_start_data, $row_start_data, $gk);
+                                $col_start_data = 2;
+                                foreach ($gv as $gkey => $gval) {
+                                    $phpExcelObject->getActiveSheet()->setCellValueByColumnAndRow($col_start_data, 
+                                     $row_start_data, $gval." "."(".number_format(($gval/$summary_report_data['header_data']['Total Recepients:'])*(100), 2,'.','')." %)");
+                                     $col_start_data++;  
+                                }
+                                $col_start_data = 0;
+                            }
+                          }
+                          break;
+                        
+                        }
+
                         $row_start_data++;
                         $phpExcelObject->getActiveSheet()->mergeCells('A'.$row_start_data.':B'.$row_start_data)->getStyle('A2:B2')->getFill()
                                  ->applyFromArray(array(
@@ -1114,7 +1205,6 @@ class DefaultController extends Controller
                         }
                         $col_start_data = 0;
                     }
-                    $col_start_data = 0;
               }
           }
        }
