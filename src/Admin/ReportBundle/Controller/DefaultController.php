@@ -330,7 +330,7 @@ class DefaultController extends Controller
         
         foreach ($categories as $key => $category)
         {
-            $sql = 'SELECT description, id FROM questions WHERE c_id ='.$category['id'];
+            $sql = 'SELECT description, id, type FROM questions WHERE c_id ='.$category['id'];
             $stmt = $em->prepare($sql);
             $stmt->execute();
             $questions = $stmt->fetchAll();
@@ -346,13 +346,15 @@ class DefaultController extends Controller
 
             //-- Get the question with separated type
             $sql = "
-              SELECT DISTINCT id FROM questions WHERE c_id IN ('{$category['id']}') AND grouping='separated'
+              SELECT DISTINCT id FROM questions WHERE c_id IN (SELECT id FROM category WHERE idconcessionaire IN('$selects_id')) AND grouping='separated'
             ";
+            
             $stmt = $em->prepare($sql);
             $stmt->execute();
             $result = $stmt->fetch();
             $separated_id = ($result) ? ($result['id']) : "";
 
+            
             if(count($questions) == 0)
                 continue;
 
@@ -360,15 +362,131 @@ class DefaultController extends Controller
             $category['category_name'] = $category['category_name']; 
             $report_summary['sub_headers'][$category['category_name']] = array();
             
+            //-- Prepares additional tabs with separated questions
+            if($separated_id){
+                
+                $separated_arr = array();
+                $o_repo = $this->getDoctrine()->getRepository('FeedbackSurveyFormBundle:Options');
+                $o = $o_repo->findBy(array('qId' => $separated_id));
+                $report_summary['extra_header'] = array();
+
+                foreach ($o as $o_key => $o_value){
+                    // $report_summary['extra_header'][$o_value->getOptionDesc()][] = array();
+                    $separated_arr[] = $o_value->getOptionDesc();
+                }
+
+                //-- loads the categories
+                foreach ($categories as $ck => $cv){
+                    foreach($separated_arr as $sk => $sv){
+                        $report_summary['extra_header'][$sv][$cv['category_name']] = array();
+                    }
+                }
+
+                
+                // $report_summary['extra_header'][$o_value->getOptionDesc()][$category['category_name']] = array();
+                $sql = "SELECT distinct actionstamp FROM employee_answers WHERE q_id=$separated_id AND actionstamp::DATE between '$date_from' AND '$date_to'";
+                $stmt = $em->prepare($sql);
+                $stmt->execute();
+                $actionstamps = $stmt->fetchAll();
+
+                $a_repo = $this->getDoctrine()->getRepository('FeedbackSurveyFormBundle:EmployeeAnswers');
+                foreach ($actionstamps as $a_key => $a_value) {
+                    $stamp = $a_value['actionstamp'];
+                    $sql = "SELECT * FROM employee_answers WHERE actionstamp='$stamp'";
+                    $stmt = $em->prepare($sql);
+                    $stmt->execute();
+                    $a = $stmt->fetchAll();
+                    $temp = array();
+
+                    //-- Check all answers per entry
+                    $s_index = "";
+                    foreach ($a as $k => $v) {
+                      if($v['q_id'] == $separated_id){
+                        $s_index = $v['value'];
+                      }
+                      $temp[] = $v;
+                    }
+
+                }
+
+                //-- loads the questions per category
+                foreach($questions as $qk => $qv){
+                    foreach($separated_arr as $sk => $sv){
+                        $report_summary['extra_header'][$sv][$cv['category_name']][$qv['description']] = array('1' => 0, '2' => 0, '3' => 0, '4' => 0);
+                    }
+                }
+
+
+                
+                //-- Rating identifier and counter
+                foreach($questions as $qq => $qs){
+                    if($qs['type'] != 'rating')
+                        continue;
+                    $q_idc = $qs['id'];
+                    // foreach ($temp as $tk => $tv) {
+                    //     if($q_idc == $tv['q_id']){
+                    //         switch ($tv['value']) {
+                    //             case 1:
+                    //                 $report_summary['sub_headers'][$category['category_name']][0][$g_index][$qs['description']][$qq + 1] += 1;
+                    //                 break;
+                    //             case 2:
+                    //                 $report_summary['sub_headers'][$category['category_name']][0][$g_index][$qs['description']][$qq + 1] += 1;
+                    //                 break;
+                    //             case 3:
+                                    
+                    //                 $report_summary['sub_headers'][$category['category_name']][0][$g_index][$qs['description']][3] += 1;
+                    //                 break;
+                    //             case 4:
+                    //                 $report_summary['sub_headers'][$category['category_name']][0][$g_index][$qs['description']][4] += 1;
+                    //                 break;
+                    //             default:
+                    //                 # code...
+                    //                 break;
+                    //         }
+                    //         break;
+                    //     }
+                    // }
+                }
+
+                // //-- Uses the original logic with no 
+                // foreach($questions as $qk=>$question)
+                // {
+                  
+                //    for($j=1;$j<=4;$j++)
+                //    {
+                //        //this old line below doesnt adhere to the input date filter so it re turns everything since the beginning of time
+                //        //$sql = "SELECT count(value) FROM employee_answers WHERE q_id IN (".$question['id'].") AND value IN(".$j.")";
+                //        $sql = "SELECT count(value) FROM employee_answers WHERE q_id IN (".$question['id'].")
+                //              AND value IN('".$j."')
+                //              AND actionstamp::DATE  >= '$date_from'
+                //              AND actionstamp::DATE  <= '$date_to'
+                //             ";
+                        
+                //        $stmt = $em->prepare($sql);
+                //        $stmt->execute();
+                //        $answer_count = $stmt->fetch();
+                       
+                //        $report_summary['sub_headers'][$category['category_name']][$question['description']][] = $answer_count['count'];            
+                //    }
+                // }
+
+            }
+            //-- On Basic Summary Report, manipulates data with group questions
             if($grouped_id){
               $group_arr = "";
               $o_repo = $this->getDoctrine()->getRepository('FeedbackSurveyFormBundle:Options');
               $o = $o_repo->findBy(array('qId' => $grouped_id));
               foreach ($o as $o_key => $o_value){
-                $report_summary['sub_headers'][$category['category_name']][0][] = $o_value->getOptionDesc();
+              	$group_arr[$o_value->getOptionDesc()] = array();
+                $report_summary['sub_headers'][$category['category_name']][0][$o_value->getOptionDesc()] = array();
+                foreach ($questions as $qk=>$question) {
+                    $report_summary['sub_headers'][$category['category_name']][0][$o_value->getOptionDesc()][$question['description']] = array('1' => 0, '2' => 0, '3' => 0, '4' => 0);
+                }
               }
-              //-- continue manipulating data here
-              $sql = "SELECT distinct actionstamp FROM employee_answers WHERE q_id=319 AND actionstamp::DATE between '$date_from' AND '$date_to'";
+             
+              
+              
+              $sql = "SELECT distinct actionstamp FROM employee_answers WHERE q_id=$grouped_id AND actionstamp::DATE between '$date_from' AND '$date_to'";
               $stmt = $em->prepare($sql);
               $stmt->execute();
               $actionstamps = $stmt->fetchAll();
@@ -381,55 +499,51 @@ class DefaultController extends Controller
                 $stmt = $em->prepare($sql);
                 $stmt->execute();
                 $a = $stmt->fetchAll();
+                $temp = array();
 
+                //-- Check all answers per entry
                 $g_index = "";
                 foreach ($a as $k => $v) {
                   if($v['q_id'] == $grouped_id){
                     $g_index = $v['value'];
                   }
                   $temp[] = $v;
+                 
                 }
-                //-- mar continue here later at office
-                foreach ($temp as $k => $v) {
-                  
-                }
-                foreach ($temp as $temp_key => $temp_value) {
-                  foreach ($temp_value as $t_key => $t_value) {
-                    switch ($t_value) {
-                      case 1:
-                        $group_arr[$g_index][$t_key] += 1;
-                        break;
-                      case 2:
-                        $group_arr[$g_index][$t_key] += 1;
-                        break;
-                      case 3:
-                        $group_arr[$g_index][$t_key] += 1;
-                        break;
-                      case 4:
-                        $group_arr[$g_index][$t_key] += 1;
-                        break;
-                      default:
-                        # code...
-                        break;
+
+                //-- Rating identifier and counter
+                foreach($questions as $qq => $qs){
+                    if($qs['type'] != 'rating')
+                        continue;
+                    $q_idc = $qs['id'];
+                    foreach ($temp as $tk => $tv) {
+                        if($q_idc == $tv['q_id']){
+                            switch ($tv['value']) {
+                                case 1:
+                                    $report_summary['sub_headers'][$category['category_name']][0][$g_index][$qs['description']][$qq + 1] += 1;
+                                    break;
+                                case 2:
+                                    $report_summary['sub_headers'][$category['category_name']][0][$g_index][$qs['description']][$qq + 1] += 1;
+                                    break;
+                                case 3:
+                                    
+                                    $report_summary['sub_headers'][$category['category_name']][0][$g_index][$qs['description']][3] += 1;
+                                    break;
+                                case 4:
+                                    $report_summary['sub_headers'][$category['category_name']][0][$g_index][$qs['description']][4] += 1;
+                                    break;
+                                default:
+                                    # code...
+                                    break;
+                            }
+                            break;
+                        }
                     }
-                  }
                 }
-                // $group_arr[$g_index] = $temp;
               }
-              echo '<pre>';
-              print_r($group_arr);
-              die();
-              // foreach($report_summary['sub_headers'][$category['category_name']][0] as $rs_key => $rs_val){
-              //   foreach($questions as $qk=>$question) {
-              //     $report_summary['sub_headers'][$category['category_name']][0][$rs_val][$question['description']][] = $group_arr[$rs_val][$qk];            
-              //   }
-              // }
-              
-              echo '<pre>';
-              print_r($report_summary['sub_headers'][$category['category_name']][0][$rs_val]);
-              die();
               continue;
             }
+            //-- Uses the original logic with no 
             foreach($questions as $qk=>$question)
             {
               
@@ -450,16 +564,19 @@ class DefaultController extends Controller
                    $report_summary['sub_headers'][$category['category_name']][$question['description']][] = $answer_count['count'];            
                }
             }
-        }
-       // echo '<pre>';
-       // print_r($report_summary['sub_headers']);
-       // die();
 
+
+        }
+       
         return $report_summary;   
     }
     
+    //-- Warning! This functions is so dirty!
     public function getReportData($filename, $summary_report_data, $conc_name)
     {
+        // print '<pre>';
+        // print_r($summary_report_data);
+        // die();
     if ( $this->is403() )
             return $this->redirect($this->generateUrl('_login'));
     
@@ -701,8 +818,8 @@ class DefaultController extends Controller
                       
          
        $phpExcelObject->getActiveSheet()
-                       ->mergeCells('C8:H8')
-                       ->getStyle('C8:H8')     
+                       ->mergeCells('C8:F8')
+                       ->getStyle('C8:F8')     
                        ->getFill()
                        ->applyFromArray(array(
                         'type' => \PHPExcel_Style_Fill::FILL_SOLID,
@@ -710,13 +827,13 @@ class DefaultController extends Controller
                                         )
                         );
        $phpExcelObject->getActiveSheet()
-                      ->getStyle('C8:H8')
+                      ->getStyle('C8:F8')
                       ->getAlignment()
                       ->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER)
                       ->setWrapText(true);
                       
        $phpExcelObject->getActiveSheet()
-                      ->getStyle('C8:H8')
+                      ->getStyle('C8:F8')
                       ->getFont()
                       ->setBold(true)
                       ->getColor()
@@ -730,7 +847,7 @@ class DefaultController extends Controller
                       ->getAlignment()
                       ->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER)
                       ->setWrapText(true);
-        //$phpExcelObject->getActiveSheet()->setCellValue($alpha[$i].'9', $rating);
+        
         $phpExcelObject->getActiveSheet()->setCellValue($alpha[$i].'9', $rating . ' - '.($this->convertRatingToDescription($rating)));
         $rating++;
       }
@@ -756,8 +873,6 @@ class DefaultController extends Controller
       }
     
       $row_start_data = 9;
-
-      // if(!$this->report['grouped'])
         foreach($summary_report_data['sub_headers'] as $shc=>$sub_headers_questions)
         {
             $row_start_data++;    
@@ -785,28 +900,17 @@ class DefaultController extends Controller
           $phpExcelObject->getActiveSheet()->getStyle('A'.$row_start_data.':B'.$row_start_data)->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setWrapText(true);
            
           $phpExcelObject->getActiveSheet()->setCellValue('A'.$row_start_data, $shc);
-            // echo '<pre>';
-            // print_r($sub_headers_questions);
-            
-            // $phpExcelObject->getActiveSheet()
-            //              ->mergeCells('C8:G7')
-            //              ->getStyle('C8:G7')     
-            //              ->getFill()
-            //              ->applyFromArray(array(
-            //               'type' => \PHPExcel_Style_Fill::FILL_SOLID,
-            //               'color' => array('rgb' => '53DBDB')
-            //                               )
-            //               );
-            
             foreach($sub_headers_questions as $sqk=>$question)
             {
-                if($sqk == 0){
+                //-- Generates a report that have grouped question
+                if($sqk === 0){
+                    
                   foreach ($question as $g_area => $g_val) {
                     $row_start_data++;
-                    $phpExcelObject->getActiveSheet()->setCellValue("A$row_start_data", "$g_val");
+                    $phpExcelObject->getActiveSheet()->setCellValue("A$row_start_data", "$g_area");
                     $phpExcelObject->getActiveSheet()
-                                   ->mergeCells("A$row_start_data:H$row_start_data")
-                                   ->getStyle("A$row_start_data:H$row_start_data")     
+                                   ->mergeCells("A$row_start_data:F$row_start_data")
+                                   ->getStyle("A$row_start_data:F$row_start_data")     
                                    ->getFill()
                                    ->applyFromArray(array(
                                     'type' => \PHPExcel_Style_Fill::FILL_SOLID,
@@ -814,10 +918,28 @@ class DefaultController extends Controller
                                 )
                       );
                     $phpExcelObject->getActiveSheet()->getStyle('A'.$row_start_data.':H'.$row_start_data)->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setWrapText(true);
-                    //-- excel continue
+                    
+                    foreach ($g_val as $gk => $gv) {
+                        $row_start_data++;
+                        $phpExcelObject->getActiveSheet()->mergeCells('A'.$row_start_data.':B'.$row_start_data)->getStyle('A2:B2')->getFill()
+                                 ->applyFromArray(array(
+                                'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+                                'color' => array('rgb' => '0066CC')
+                                 )
+                                );  
+                        $phpExcelObject->getActiveSheet()->setCellValueByColumnAndRow($col_start_data, $row_start_data, $gk);
+                        $col_start_data = 2;
+                        foreach ($gv as $gkey => $gval) {
+                            $phpExcelObject->getActiveSheet()->setCellValueByColumnAndRow($col_start_data, 
+                             $row_start_data, $gval." "."(".number_format(($gval/$summary_report_data['header_data']['Total Recepients:'])*(100), 2,'.','')." %)");
+                             $col_start_data++;  
+                        }
+                        $col_start_data = 0;
+                    }
                   }
                   break;
                 }
+                //-- Generates the standard reporting
                 else {
                   $row_start_data++;
                   $phpExcelObject->getActiveSheet()->mergeCells('A'.$row_start_data.':B'.$row_start_data)->getStyle('A2:B2')->getFill()
@@ -841,97 +963,168 @@ class DefaultController extends Controller
             }
             $row_start_data++;                  
         }
-       // elseif($this->report['grouped'])
-        // foreach ($this->report['grouped'] as $g_key => $g_value) {
-          
 
-        //   //-- Displays all Category
-        //   foreach($summary_report_data['sub_headers'] as $shc=>$sub_headers_questions){
-
-        //     $row_start_data++;    
-        //     $phpExcelObject->getActiveSheet()->mergeCells('A'.$row_start_data.':B'.$row_start_data)->getStyle('A2:B2')->getFill()
-        //                    ->applyFromArray(array(
-        //                   'type' => \PHPExcel_Style_Fill::FILL_SOLID,
-        //                   'color' => array('rgb' => '0066CC')
-        //                    )
-        //                   );
-                          
-        //     $phpExcelObject->getActiveSheet()->getStyle('A'.$row_start_data.':B'.$row_start_data)->getFill()
-        //                  ->applyFromArray(array(
-        //                   'type' => \PHPExcel_Style_Fill::FILL_SOLID,
-        //                   'color' => array('rgb' => '333333')
-        //                    )
-        //                   );
-                          
-        //     $phpExcelObject->getActiveSheet()
-        //              ->getStyle('A'.$row_start_data.':B'.$row_start_data)
-        //              ->getFont()
-        //              ->getColor()
-        //              ->setARGB(\PHPExcel_Style_Color::COLOR_WHITE);
-                                       
-                          
-        //     $phpExcelObject->getActiveSheet()->getStyle('A'.$row_start_data.':B'.$row_start_data)->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setWrapText(true);
-        //     $phpExcelObject->getActiveSheet()->setCellValue('A'.$row_start_data, $shc);
-
-        //     //-- Displays all grouped label
-        //     $row_start_data++;
-        //     $phpExcelObject->getActiveSheet()->setCellValue("A$row_start_data", "$g_key");
-        //     $phpExcelObject->getActiveSheet()
-        //                    ->mergeCells("A$row_start_data:H$row_start_data")
-        //                    ->getStyle("A$row_start_data:H$row_start_data")     
-        //                    ->getFill()
-        //                    ->applyFromArray(array(
-        //                     'type' => \PHPExcel_Style_Fill::FILL_SOLID,
-        //                     'color' => array('rgb' => '92D050')
-        //                   )
-        //       );
-        //     $phpExcelObject->getActiveSheet()->getStyle('A'.$row_start_data.':H'.$row_start_data)->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setWrapText(true);
-          
-        //     //-- Displays answers result
-         
-        //   foreach($sub_headers_questions as $sqk=>$question)
-        //   {
-        //       $row_start_data++;
-        //       $phpExcelObject->getActiveSheet()->mergeCells('A'.$row_start_data.':B'.$row_start_data)->getStyle('A2:B2')->getFill()
-        //                  ->applyFromArray(array(
-        //                 'type' => \PHPExcel_Style_Fill::FILL_SOLID,
-        //                 'color' => array('rgb' => '0066CC')
-        //                  )
-        //                 );  
-        //       $phpExcelObject->getActiveSheet()->setCellValueByColumnAndRow($col_start_data, $row_start_data, $sqk);
-        //       $col_start_data = 2;
-        //       // echo '<pre>';
-        //       // print_r($question);
-        //       // die();
-        //      //  foreach($question as $answer_value)
-        //      //  {  
-        //      //     $phpExcelObject->getActiveSheet()->setCellValueByColumnAndRow($col_start_data, 
-        //      //     $row_start_data, $answer_value." "."(".number_format(($answer_value/$summary_report_data['header_data']['Total Recepients:'])*(100), 2,'.','')." %)");
-        //      //     $col_start_data++;          
-        //      // }
-              
-        //       $col_start_data = 0;                
-        //   }
-        //   $row_start_data++;
-            
-        //   }
-
-          
-        // }
        $phpExcelObject->getActiveSheet()->setCellValue('A2', 'Online Feedback Form - '.$conc_name);
        $phpExcelObject->getActiveSheet()->setCellValue('C8', 'Rating');
 
-        // create the writer
-        $writer = $this->get('phpexcel')->createWriter($phpExcelObject, 'Excel5');
-        // create the response
-        // adding headers
-        
-        //-- Separated Grouping per Tab
-        $q = $this->getDoctrine()->getRepository('FeedbackSurveyFormBundle:Concessionaire')->findOneByDescription($conc_name);
-        // echo '<pre>';
-        // print_r($q);
+       //-- Additional tabs if separated question is set
+       if($summary_report_data['extra_header']){
+            
+          $tabs = 1;
+          foreach ($summary_report_data['extra_header'] as $key => $value) {
+                $tabs++;
+                $phpExcelObject->createSheet();
+                $phpExcelObject->setActiveSheetIndex($tabs);
+                $phpExcelObject->getActiveSheet()->setTitle($key);
+
+                for($col = 'A'; $col !== 'G'; $col++)
+                {
+                    $phpExcelObject->getActiveSheet()
+                        ->getColumnDimension($col)
+                        ->setAutoSize(true);
+                }
+
+                $phpExcelObject->getActiveSheet()->setCellValue('A2', 'Online Feedback Form - '.$conc_name);
+                $phpExcelObject->getActiveSheet()->setCellValue('C8', 'Rating');
+                $phpExcelObject->getActiveSheet()
+                               ->mergeCells('A2:B2')
+                               ->getStyle('A2:B2')     
+                               ->getFill()
+                               ->applyFromArray(array(
+                                'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+                                'color' => array('rgb' => '0066CC')
+                                                )
+                                );
+                $phpExcelObject->getActiveSheet()
+                              ->getStyle('A2:B2')
+                              ->getAlignment()
+                              ->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER)
+                              ->setWrapText(true);
+                              
+                $phpExcelObject->getActiveSheet()
+                              ->getStyle('A2:B2')
+                              ->getFont()
+                              ->setBold(true)
+                              ->getColor()
+                              ->setARGB(\PHPExcel_Style_Color::COLOR_WHITE);
+                              
+                              
+                 
+                $phpExcelObject->getActiveSheet()
+                               ->mergeCells('C8:F8')
+                               ->getStyle('C8:F8')     
+                               ->getFill()
+                               ->applyFromArray(array(
+                                'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+                                'color' => array('rgb' => '53DBDB')
+                                                )
+                                );
+                $phpExcelObject->getActiveSheet()
+                              ->getStyle('C8:F8')
+                              ->getAlignment()
+                              ->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER)
+                              ->setWrapText(true);
+                              
+                $phpExcelObject->getActiveSheet()
+                              ->getStyle('C8:F8')
+                              ->getFont()
+                              ->setBold(true)
+                              ->getColor()
+                              ->setARGB(\PHPExcel_Style_Color::COLOR_WHITE);
+                $rating = 1;
+
+                for($i = 2; $i<6; $i++)
+                {
+                $phpExcelObject->getActiveSheet()
+                              ->getStyle($alpha[$i].'9')
+                              ->getAlignment()
+                              ->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER)
+                              ->setWrapText(true);
+
+                $phpExcelObject->getActiveSheet()->setCellValue($alpha[$i].'9', $rating . ' - '.($this->convertRatingToDescription($rating)));
+                $rating++;
+                }
+
+                $col_start_data = 0;
+                $row_start_data = 3;
+
+                foreach($summary_report_data['header_data'] as $sk=>$report_top_header)
+                { 
+
+                  for($col_start_data = 0; $col_start_data < 2; $col_start_data++)
+                  {
+                       if($col_start_data == 0)    
+                           $phpExcelObject->getActiveSheet()->setCellValueByColumnAndRow($col_start_data, $row_start_data, $sk);
+                       else
+                       {
+                           $phpExcelObject->getActiveSheet()->setCellValueByColumnAndRow($col_start_data, $row_start_data, $report_top_header);      
+                           $phpExcelObject->getActiveSheet()->getStyle('B'.$row_start_data)->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
+                       }
+                  }
+                  $col_start_data = 0;
+                  $row_start_data++;  
+                }
+              $row_start_data = 9;
+
+              //-- Generates the standard report
+              foreach ($value as $sq => $sqk) {
+                    $row_start_data++;
+                    $phpExcelObject->getActiveSheet()->mergeCells('A'.$row_start_data.':B'.$row_start_data)->getStyle('A2:B2')->getFill()
+                             ->applyFromArray(array(
+                            'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+                            'color' => array('rgb' => '0066CC')
+                             )
+                            );  
+                    $phpExcelObject->getActiveSheet()
+                        ->getStyle('A'.$row_start_data.':B'.$row_start_data)
+                        ->getAlignment()
+                        ->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER)
+                        ->setWrapText(true);
+
+                    $phpExcelObject->getActiveSheet()->getStyle('A'.$row_start_data.':B'.$row_start_data)->getFill()
+                        ->applyFromArray(array(
+                            'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+                            'color' => array('rgb' => '333333')
+                        )
+                    );
+                    $phpExcelObject->getActiveSheet()
+                        ->getStyle('A'.$row_start_data.':B'.$row_start_data)
+                        ->getFont()
+                        ->getColor()
+                        ->setARGB(\PHPExcel_Style_Color::COLOR_WHITE);
+
+                    $phpExcelObject->getActiveSheet()->setCellValueByColumnAndRow($col_start_data, $row_start_data, $sq);
+                    $col_start_data = 2;
+
+                    //-- Generates  the questions and results
+                    foreach ($g_val as $gk => $gv) {
+                        $row_start_data++;
+                        $phpExcelObject->getActiveSheet()->mergeCells('A'.$row_start_data.':B'.$row_start_data)->getStyle('A2:B2')->getFill()
+                                 ->applyFromArray(array(
+                                'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+                                'color' => array('rgb' => '0066CC')
+                                 )
+                                );  
+                        $phpExcelObject->getActiveSheet()->setCellValueByColumnAndRow($col_start_data, $row_start_data, $gk);
+                        $col_start_data = 2;
+                        foreach ($gv as $gkey => $gval) {
+                            $phpExcelObject->getActiveSheet()->setCellValueByColumnAndRow($col_start_data, 
+                             $row_start_data, $gval." "."(".number_format(($gval/$summary_report_data['header_data']['Total Recepients:'])*(100), 2,'.','')." %)");
+                             $col_start_data++;  
+                        }
+                        $col_start_data = 0;
+                    }
+                    $col_start_data = 0;
+              }
+          }
+       }
+
+        // print '<pre>';
+        // print_r($summary_report_data['extra_header']);
         // die();
-        //-- Grouped Grouping 
+        $writer = $this->get('phpexcel')->createWriter($phpExcelObject, 'Excel5');
+        
+        $q = $this->getDoctrine()->getRepository('FeedbackSurveyFormBundle:Concessionaire')->findOneByDescription($conc_name);
         $file = $conc_name."_".$filename.".xls";
         $dir = getcwd();
         $writer->save($dir.'/reports/online_feeback_report-'.$conc_name."_".$filename.".xls");
@@ -1050,7 +1243,7 @@ class DefaultController extends Controller
       echo 'Caught exception at convertRatingToDescription fn: '. $e->getMessage(). "\n";
     }
     
-    $static = array('Highly Disagree', 'Disagree', 'Agree', 'Highly Disagree');
+    $static = array('Highly Disagree', 'Disagree', 'Agree', 'Highly Agree');
     
     return $static[$number]; 
   }

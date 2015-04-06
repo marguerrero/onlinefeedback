@@ -389,6 +389,7 @@ class DefaultController extends Controller
     
         $description = trim(strip_tags($request->request->get('question_name')));
         $q_id = $request->request->get('q_id');
+        $q_id = ($q_id == 'false') ? "0" : $q_id;
         $cat_id = $request->request->get('cat_id');
         $rating = $request->request->get('type');
         $optional = $request->request->get('optional', 0);
@@ -454,7 +455,7 @@ class DefaultController extends Controller
             $question->setGrouping($grouping);
             $user_logs = new SysUserActionLogs();
       
-            if($q_id !== 'false')
+            if(($q_id !== 'false') AND ($q_id != 0))
             {
                 $question_repo = $this->getDoctrine()->getRepository('AdminMaintenanceBundle:Questions');
                 $question = $question_repo->find($q_id);
