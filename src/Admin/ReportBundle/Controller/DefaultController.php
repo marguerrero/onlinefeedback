@@ -185,14 +185,38 @@ class DefaultController extends Controller
         
         /*(print_r(array('this->report' => $this->report, 'answers' => $answers));
     die();*/
-    
-        
+        //-- Get the question with grouped type
+        $sql = "
+          SELECT DISTINCT id FROM questions WHERE c_id IN (
+          SELECT distinct b.id FROM concessionaire a
+          LEFT JOIN category b ON b.idconcessionaire=a.idconcessionaire
+          WHERE a.description='$conc_name'
+              )AND grouping='grouped'
+        ";
+        $stmt = $em->prepare($sql);
+        $stmt->execute();
+        $result = $stmt->fetch();
+        $grouped_id = ($result) ? ($result['id']) : "";
+
+        //-- Get the question with separated type
+        $sql = "
+          SELECT DISTINCT id FROM questions WHERE c_id IN (
+          SELECT distinct b.id FROM concessionaire a
+          LEFT JOIN category b ON b.idconcessionaire=a.idconcessionaire
+          WHERE a.description='$conc_name'
+              )AND grouping='separated'
+        ";
+        $stmt = $em->prepare($sql);
+        $stmt->execute();
+        $result = $stmt->fetch();
+        $separated_id = ($result) ? ($result['id']) : "";
+
         if(count($answers) === 0)
             return new JsonResponse(array('success'=>true, 'status'=>'failure', 'data'=>"No Data to Generate (".$date_from." TO " .$date_to.")"));
-           
+          
         foreach ($answers as $ka => $answer) 
         {
-           $sql = "SELECT value FROM employee_answers 
+           $sql = "SELECT q_id, value FROM employee_answers 
                    WHERE actionstamp ='".$answer['actionstamp']."'
                    AND username = '".$answer['username']."' ORDER BY id";
            
@@ -200,20 +224,41 @@ class DefaultController extends Controller
            $stmt->execute();
            $values = $stmt->fetchAll();
             
+          $g_index = "";
+          $s_index = "";
+          $g_arr = array();
+          $s_arr = array();
           foreach ($values as $value_holder)
           {
+            $current_q_id = $value_holder['q_id'];
+            if($current_q_id == $grouped_id){
+              $g_index = $value_holder['value'];
+            }
+            if($current_q_id == $separated_id){
+              $s_index = $value_holder['value'];
+            }
             $values_holder[] = $value_holder['value'];
           }
           
           $answer[] = $values_holder;
 
           unset($values_holder);
-          
+
+          if($g_index){
+            $g_arr[$g_index] = $answer;
+            $this->report['grouped'][$g_index][] = $answer;
+          }
+          if($s_index){
+            $g_arr[$g_index] = $answer;
+            $this->report['separated'][$s_index][] = $answer;
+          }
           $this->report['data'][] = $answer;
         }
     /*print_r($this->report);
     die();*/
-       
+       // echo '<pre>';
+       // print_r($this->report['grouped']);
+       // die();
         if(!empty($this->report))
         {
             $summary_report_data = $this->getSummaryReport($date_from, $date_to, $selects_id, $conc_name);
@@ -290,14 +335,104 @@ class DefaultController extends Controller
             $stmt->execute();
             $questions = $stmt->fetchAll();
             
+            //-- Get the question with grouped type
+            $sql = "
+              SELECT DISTINCT id FROM questions WHERE c_id IN ('{$category['id']}') AND grouping='grouped'
+            ";
+            $stmt = $em->prepare($sql);
+            $stmt->execute();
+            $result = $stmt->fetch();
+            $grouped_id = ($result) ? ($result['id']) : "";
+
+            //-- Get the question with separated type
+            $sql = "
+              SELECT DISTINCT id FROM questions WHERE c_id IN ('{$category['id']}') AND grouping='separated'
+            ";
+            $stmt = $em->prepare($sql);
+            $stmt->execute();
+            $result = $stmt->fetch();
+            $separated_id = ($result) ? ($result['id']) : "";
+
             if(count($questions) == 0)
                 continue;
-              
+
+
             $category['category_name'] = $category['category_name']; 
             $report_summary['sub_headers'][$category['category_name']] = array();
             
+            if($grouped_id){
+              $group_arr = "";
+              $o_repo = $this->getDoctrine()->getRepository('FeedbackSurveyFormBundle:Options');
+              $o = $o_repo->findBy(array('qId' => $grouped_id));
+              foreach ($o as $o_key => $o_value){
+                $report_summary['sub_headers'][$category['category_name']][0][] = $o_value->getOptionDesc();
+              }
+              //-- continue manipulating data here
+              $sql = "SELECT distinct actionstamp FROM employee_answers WHERE q_id=319 AND actionstamp::DATE between '$date_from' AND '$date_to'";
+              $stmt = $em->prepare($sql);
+              $stmt->execute();
+              $actionstamps = $stmt->fetchAll();
+
+              $a_repo = $this->getDoctrine()->getRepository('FeedbackSurveyFormBundle:EmployeeAnswers');
+              
+              foreach ($actionstamps as $a_key => $a_value) {
+                $stamp = $a_value['actionstamp'];
+                $sql = "SELECT * FROM employee_answers WHERE actionstamp='$stamp'";
+                $stmt = $em->prepare($sql);
+                $stmt->execute();
+                $a = $stmt->fetchAll();
+
+                $g_index = "";
+                foreach ($a as $k => $v) {
+                  if($v['q_id'] == $grouped_id){
+                    $g_index = $v['value'];
+                  }
+                  $temp[] = $v;
+                }
+                //-- mar continue here later at office
+                foreach ($temp as $k => $v) {
+                  
+                }
+                foreach ($temp as $temp_key => $temp_value) {
+                  foreach ($temp_value as $t_key => $t_value) {
+                    switch ($t_value) {
+                      case 1:
+                        $group_arr[$g_index][$t_key] += 1;
+                        break;
+                      case 2:
+                        $group_arr[$g_index][$t_key] += 1;
+                        break;
+                      case 3:
+                        $group_arr[$g_index][$t_key] += 1;
+                        break;
+                      case 4:
+                        $group_arr[$g_index][$t_key] += 1;
+                        break;
+                      default:
+                        # code...
+                        break;
+                    }
+                  }
+                }
+                // $group_arr[$g_index] = $temp;
+              }
+              echo '<pre>';
+              print_r($group_arr);
+              die();
+              // foreach($report_summary['sub_headers'][$category['category_name']][0] as $rs_key => $rs_val){
+              //   foreach($questions as $qk=>$question) {
+              //     $report_summary['sub_headers'][$category['category_name']][0][$rs_val][$question['description']][] = $group_arr[$rs_val][$qk];            
+              //   }
+              // }
+              
+              echo '<pre>';
+              print_r($report_summary['sub_headers'][$category['category_name']][0][$rs_val]);
+              die();
+              continue;
+            }
             foreach($questions as $qk=>$question)
             {
+              
                for($j=1;$j<=4;$j++)
                {
                    //this old line below doesnt adhere to the input date filter so it re turns everything since the beginning of time
@@ -316,8 +451,9 @@ class DefaultController extends Controller
                }
             }
         }
-    /*print_r($report_summary);
-    die();*/
+       // echo '<pre>';
+       // print_r($report_summary['sub_headers']);
+       // die();
 
         return $report_summary;   
     }
@@ -620,85 +756,168 @@ class DefaultController extends Controller
       }
     
       $row_start_data = 9;
-      // foreach($summary_report_data['sub_headers'] as $shc=>$sub_headers_questions)
-      // {
-      // //   $row_start_data++;
-      // //   $phpExcelObject->getActiveSheet()
-      // //                  ->mergeCells("A$row_start_data:F$row_start_data")
-      // //                  ->getStyle("A$row_start_data:F$row_start_data")     
-      // //                  ->getFill()
-      // //                  ->applyFromArray(array(
-      // //                   'type' => \PHPExcel_Style_Fill::FILL_SOLID,
-      // //                   'color' => array('rgb' => '53DBDB')
-      // //                                   )
-      // //                   );
-      // //     $phpExcelObject->getActiveSheet()->setCellValueByColumnAndRow("A", $row_start_data, "Reymar Guerrero");
+
+      // if(!$this->report['grouped'])
+        foreach($summary_report_data['sub_headers'] as $shc=>$sub_headers_questions)
+        {
+            $row_start_data++;    
+            $phpExcelObject->getActiveSheet()->mergeCells('A'.$row_start_data.':B'.$row_start_data)->getStyle('A2:B2')->getFill()
+                           ->applyFromArray(array(
+                          'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+                          'color' => array('rgb' => '0066CC')
+                           )
+                          );
+                          
+           $phpExcelObject->getActiveSheet()->getStyle('A'.$row_start_data.':B'.$row_start_data)->getFill()
+                         ->applyFromArray(array(
+                          'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+                          'color' => array('rgb' => '333333')
+                           )
+                          );
+                          
+         $phpExcelObject->getActiveSheet()
+                     ->getStyle('A'.$row_start_data.':B'.$row_start_data)
+                     ->getFont()
+                     ->getColor()
+                     ->setARGB(\PHPExcel_Style_Color::COLOR_WHITE);
+                                       
+                          
+          $phpExcelObject->getActiveSheet()->getStyle('A'.$row_start_data.':B'.$row_start_data)->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setWrapText(true);
+           
+          $phpExcelObject->getActiveSheet()->setCellValue('A'.$row_start_data, $shc);
+            // echo '<pre>';
+            // print_r($sub_headers_questions);
+            
+            // $phpExcelObject->getActiveSheet()
+            //              ->mergeCells('C8:G7')
+            //              ->getStyle('C8:G7')     
+            //              ->getFill()
+            //              ->applyFromArray(array(
+            //               'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+            //               'color' => array('rgb' => '53DBDB')
+            //                               )
+            //               );
+            
+            foreach($sub_headers_questions as $sqk=>$question)
+            {
+                if($sqk == 0){
+                  foreach ($question as $g_area => $g_val) {
+                    $row_start_data++;
+                    $phpExcelObject->getActiveSheet()->setCellValue("A$row_start_data", "$g_val");
+                    $phpExcelObject->getActiveSheet()
+                                   ->mergeCells("A$row_start_data:H$row_start_data")
+                                   ->getStyle("A$row_start_data:H$row_start_data")     
+                                   ->getFill()
+                                   ->applyFromArray(array(
+                                    'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+                                    'color' => array('rgb' => '92D050')
+                                )
+                      );
+                    $phpExcelObject->getActiveSheet()->getStyle('A'.$row_start_data.':H'.$row_start_data)->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setWrapText(true);
+                    //-- excel continue
+                  }
+                  break;
+                }
+                else {
+                  $row_start_data++;
+                  $phpExcelObject->getActiveSheet()->mergeCells('A'.$row_start_data.':B'.$row_start_data)->getStyle('A2:B2')->getFill()
+                             ->applyFromArray(array(
+                            'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+                            'color' => array('rgb' => '0066CC')
+                             )
+                            );  
+                  $phpExcelObject->getActiveSheet()->setCellValueByColumnAndRow($col_start_data, $row_start_data, $sqk);
+                  $col_start_data = 2;
+                  
+                  foreach($question as $answer_value)
+                  {  
+                     $phpExcelObject->getActiveSheet()->setCellValueByColumnAndRow($col_start_data, 
+                     $row_start_data, $answer_value." "."(".number_format(($answer_value/$summary_report_data['header_data']['Total Recepients:'])*(100), 2,'.','')." %)");
+                     $col_start_data++;          
+                 }
+                  
+                  $col_start_data = 0;                
+                }
+            }
+            $row_start_data++;                  
+        }
+       // elseif($this->report['grouped'])
+        // foreach ($this->report['grouped'] as $g_key => $g_value) {
           
-        
 
+        //   //-- Displays all Category
+        //   foreach($summary_report_data['sub_headers'] as $shc=>$sub_headers_questions){
 
-      //     $row_start_data++;    
-      //     $phpExcelObject->getActiveSheet()->mergeCells('A'.$row_start_data.':B'.$row_start_data)->getStyle('A2:B2')->getFill()
-      //                    ->applyFromArray(array(
-      //                   'type' => \PHPExcel_Style_Fill::FILL_SOLID,
-      //                   'color' => array('rgb' => '0066CC')
-      //                    )
-      //                   );
-                        
-      //    $phpExcelObject->getActiveSheet()->getStyle('A'.$row_start_data.':B'.$row_start_data)->getFill()
-      //                  ->applyFromArray(array(
-      //                   'type' => \PHPExcel_Style_Fill::FILL_SOLID,
-      //                   'color' => array('rgb' => '333333')
-      //                    )
-      //                   );
-                        
-      //  $phpExcelObject->getActiveSheet()
-      //              ->getStyle('A'.$row_start_data.':B'.$row_start_data)
-      //              ->getFont()
-      //              ->getColor()
-      //              ->setARGB(\PHPExcel_Style_Color::COLOR_WHITE);
-                                     
-                        
-      //   $phpExcelObject->getActiveSheet()->getStyle('A'.$row_start_data.':B'.$row_start_data)->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setWrapText(true);
+        //     $row_start_data++;    
+        //     $phpExcelObject->getActiveSheet()->mergeCells('A'.$row_start_data.':B'.$row_start_data)->getStyle('A2:B2')->getFill()
+        //                    ->applyFromArray(array(
+        //                   'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+        //                   'color' => array('rgb' => '0066CC')
+        //                    )
+        //                   );
+                          
+        //     $phpExcelObject->getActiveSheet()->getStyle('A'.$row_start_data.':B'.$row_start_data)->getFill()
+        //                  ->applyFromArray(array(
+        //                   'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+        //                   'color' => array('rgb' => '333333')
+        //                    )
+        //                   );
+                          
+        //     $phpExcelObject->getActiveSheet()
+        //              ->getStyle('A'.$row_start_data.':B'.$row_start_data)
+        //              ->getFont()
+        //              ->getColor()
+        //              ->setARGB(\PHPExcel_Style_Color::COLOR_WHITE);
+                                       
+                          
+        //     $phpExcelObject->getActiveSheet()->getStyle('A'.$row_start_data.':B'.$row_start_data)->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setWrapText(true);
+        //     $phpExcelObject->getActiveSheet()->setCellValue('A'.$row_start_data, $shc);
+
+        //     //-- Displays all grouped label
+        //     $row_start_data++;
+        //     $phpExcelObject->getActiveSheet()->setCellValue("A$row_start_data", "$g_key");
+        //     $phpExcelObject->getActiveSheet()
+        //                    ->mergeCells("A$row_start_data:H$row_start_data")
+        //                    ->getStyle("A$row_start_data:H$row_start_data")     
+        //                    ->getFill()
+        //                    ->applyFromArray(array(
+        //                     'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+        //                     'color' => array('rgb' => '92D050')
+        //                   )
+        //       );
+        //     $phpExcelObject->getActiveSheet()->getStyle('A'.$row_start_data.':H'.$row_start_data)->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setWrapText(true);
+          
+        //     //-- Displays answers result
          
-      //   $phpExcelObject->getActiveSheet()->setCellValue('A'.$row_start_data, $shc);
-      //     // echo '<pre>';
-      //     // print_r($sub_headers_questions);
-      //     // die();
-      //     // $phpExcelObject->getActiveSheet()
-      //     //              ->mergeCells('C8:G7')
-      //     //              ->getStyle('C8:G7')     
-      //     //              ->getFill()
-      //     //              ->applyFromArray(array(
-      //     //               'type' => \PHPExcel_Style_Fill::FILL_SOLID,
-      //     //               'color' => array('rgb' => '53DBDB')
-      //     //                               )
-      //     //               );
+        //   foreach($sub_headers_questions as $sqk=>$question)
+        //   {
+        //       $row_start_data++;
+        //       $phpExcelObject->getActiveSheet()->mergeCells('A'.$row_start_data.':B'.$row_start_data)->getStyle('A2:B2')->getFill()
+        //                  ->applyFromArray(array(
+        //                 'type' => \PHPExcel_Style_Fill::FILL_SOLID,
+        //                 'color' => array('rgb' => '0066CC')
+        //                  )
+        //                 );  
+        //       $phpExcelObject->getActiveSheet()->setCellValueByColumnAndRow($col_start_data, $row_start_data, $sqk);
+        //       $col_start_data = 2;
+        //       // echo '<pre>';
+        //       // print_r($question);
+        //       // die();
+        //      //  foreach($question as $answer_value)
+        //      //  {  
+        //      //     $phpExcelObject->getActiveSheet()->setCellValueByColumnAndRow($col_start_data, 
+        //      //     $row_start_data, $answer_value." "."(".number_format(($answer_value/$summary_report_data['header_data']['Total Recepients:'])*(100), 2,'.','')." %)");
+        //      //     $col_start_data++;          
+        //      // }
+              
+        //       $col_start_data = 0;                
+        //   }
+        //   $row_start_data++;
+            
+        //   }
+
           
-      //     foreach($sub_headers_questions as $sqk=>$question)
-      //     {
-      //         $row_start_data++;
-      //         $phpExcelObject->getActiveSheet()->mergeCells('A'.$row_start_data.':B'.$row_start_data)->getStyle('A2:B2')->getFill()
-      //                    ->applyFromArray(array(
-      //                   'type' => \PHPExcel_Style_Fill::FILL_SOLID,
-      //                   'color' => array('rgb' => '0066CC')
-      //                    )
-      //                   );  
-      //         $phpExcelObject->getActiveSheet()->setCellValueByColumnAndRow($col_start_data, $row_start_data, $sqk);
-      //         $col_start_data = 2;
-              
-      //         foreach($question as $answer_value)
-      //         {  
-      //            $phpExcelObject->getActiveSheet()->setCellValueByColumnAndRow($col_start_data, 
-      //            $row_start_data, $answer_value." "."(".number_format(($answer_value/$summary_report_data['header_data']['Total Recepients:'])*(100), 2,'.','')." %)");
-      //            $col_start_data++;          
-      //        }
-              
-      //         $col_start_data = 0;                
-      //     }
-      //     $row_start_data++;                  
-      // }
-     
+        // }
        $phpExcelObject->getActiveSheet()->setCellValue('A2', 'Online Feedback Form - '.$conc_name);
        $phpExcelObject->getActiveSheet()->setCellValue('C8', 'Rating');
 
